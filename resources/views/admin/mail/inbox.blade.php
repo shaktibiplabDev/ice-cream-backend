@@ -19,8 +19,23 @@
         <div class="toolbar-center">
             <span class="unread-badge">{{ $unreadCount }} new</span>
         </div>
+        {{-- REMOVED: $emails->links() from toolbar - was causing giant arrow pagination --}}
         <div class="toolbar-right">
-            {{ $emails->links('pagination::simple-tailwind') }}
+            @if($emails->hasPages())
+                <span class="toolbar-page-info">
+                    {{ $emails->firstItem() }}–{{ $emails->lastItem() }} of {{ $emails->total() }}
+                </span>
+                @if($emails->previousPageUrl())
+                    <a href="{{ $emails->previousPageUrl() }}" class="toolbar-nav-btn">&#8249;</a>
+                @else
+                    <span class="toolbar-nav-btn disabled">&#8249;</span>
+                @endif
+                @if($emails->nextPageUrl())
+                    <a href="{{ $emails->nextPageUrl() }}" class="toolbar-nav-btn">&#8250;</a>
+                @else
+                    <span class="toolbar-nav-btn disabled">&#8250;</span>
+                @endif
+            @endif
         </div>
     </div>
 
@@ -98,10 +113,57 @@
                         @endforeach
                     </div>
                 </div>
-                
+
+                {{-- Clean custom pagination footer (no Tailwind dependency) --}}
+                @if($emails->hasPages())
                 <div class="inbox-pagination">
-                    {{ $emails->links() }}
+                    <span class="pagination-info">
+                        Showing {{ $emails->firstItem() }} to {{ $emails->lastItem() }} of {{ $emails->total() }} results
+                    </span>
+                    <div class="pagination-links">
+                        {{-- Previous --}}
+                        @if($emails->onFirstPage())
+                            <span class="page-btn disabled">&#8249;</span>
+                        @else
+                            <a href="{{ $emails->previousPageUrl() }}" class="page-btn">&#8249;</a>
+                        @endif
+
+                        {{-- Page numbers (show window of 5) --}}
+                        @php
+                            $currentPage = $emails->currentPage();
+                            $lastPage    = $emails->lastPage();
+                            $start = max(1, $currentPage - 2);
+                            $end   = min($lastPage, $currentPage + 2);
+                        @endphp
+
+                        @if($start > 1)
+                            <a href="{{ $emails->url(1) }}" class="page-btn">1</a>
+                            @if($start > 2)<span class="page-ellipsis">…</span>@endif
+                        @endif
+
+                        @for($p = $start; $p <= $end; $p++)
+                            @if($p === $currentPage)
+                                <span class="page-btn current">{{ $p }}</span>
+                            @else
+                                <a href="{{ $emails->url($p) }}" class="page-btn">{{ $p }}</a>
+                            @endif
+                        @endfor
+
+                        @if($end < $lastPage)
+                            @if($end < $lastPage - 1)<span class="page-ellipsis">…</span>@endif
+                            <a href="{{ $emails->url($lastPage) }}" class="page-btn">{{ $lastPage }}</a>
+                        @endif
+
+                        {{-- Next --}}
+                        @if($emails->hasMorePages())
+                            <a href="{{ $emails->nextPageUrl() }}" class="page-btn">&#8250;</a>
+                        @else
+                            <span class="page-btn disabled">&#8250;</span>
+                        @endif
+                    </div>
                 </div>
+                @endif
+
             @else
                 <div class="empty-inbox">
                     <div class="empty-icon">
@@ -141,6 +203,7 @@
         padding: 12px 24px;
         background: var(--bg-surface, #1a1a1f);
         border-bottom: 1px solid var(--border-subtle, #2c2c30);
+        flex-shrink: 0;
     }
 
     .btn-compose {
@@ -171,16 +234,53 @@
         color: var(--text-secondary, #e0e0e0);
     }
 
+    /* Toolbar pagination controls */
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .toolbar-page-info {
+        font-size: 13px;
+        color: var(--text-muted, #8e8e96);
+        margin-right: 4px;
+    }
+
+    .toolbar-nav-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        font-size: 18px;
+        line-height: 1;
+        color: var(--text-secondary, #d0d0d8);
+        text-decoration: none;
+        background: rgba(255,255,255,0.05);
+        transition: background 0.15s;
+    }
+
+    .toolbar-nav-btn:hover:not(.disabled) {
+        background: rgba(255,255,255,0.1);
+    }
+
+    .toolbar-nav-btn.disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+
     /* Main layout */
     .inbox-main-layout {
         display: flex;
         flex: 1;
-        overflow: hidden;
+        overflow: hidden;  /* critical: prevents children from expanding past container */
     }
 
     /* Sidebar */
     .inbox-sidebar {
-        width: 240px;
+        width: 200px;
         flex-shrink: 0;
         padding: 16px 12px;
         border-right: 1px solid var(--border-subtle, #2c2c30);
@@ -221,6 +321,7 @@
         opacity: 0.7;
         width: 20px;
         height: 20px;
+        flex-shrink: 0;
     }
 
     .nav-link span:first-of-type {
@@ -243,6 +344,7 @@
         flex-direction: column;
         overflow: hidden;
         background: var(--bg-card, #0f0f12);
+        min-width: 0;
     }
 
     .email-table-wrapper {
@@ -250,6 +352,7 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        min-height: 0; /* critical for flex children to scroll correctly */
     }
 
     .email-table-header {
@@ -262,11 +365,13 @@
         font-weight: 600;
         color: var(--text-muted, #8e8e96);
         letter-spacing: 0.3px;
+        flex-shrink: 0;
     }
 
     .email-rows {
         flex: 1;
         overflow-y: auto;
+        min-height: 0; /* critical */
     }
 
     .email-row {
@@ -276,7 +381,7 @@
         border-bottom: 1px solid var(--border-subtle, #2c2c30);
         text-decoration: none;
         color: var(--text-secondary, #d0d0d8);
-        transition: all 0.1s ease;
+        transition: background 0.1s ease;
         cursor: pointer;
     }
 
@@ -305,9 +410,10 @@
         text-align: center;
     }
     .header-from, .row-from {
-        width: 200px;
+        width: 190px;
         flex-shrink: 0;
         padding-right: 16px;
+        min-width: 0;
     }
     .header-subject, .row-subject {
         flex: 1;
@@ -317,7 +423,7 @@
         align-items: baseline;
     }
     .header-date, .row-date {
-        width: 80px;
+        width: 60px;
         flex-shrink: 0;
         text-align: right;
         font-size: 12px;
@@ -363,7 +469,8 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 280px;
+        max-width: 260px;
+        flex-shrink: 0;
         color: var(--text-secondary, #e0e0e0);
     }
     .email-snippet {
@@ -373,6 +480,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         flex: 1;
+        min-width: 0;
     }
     .email-snippet::before {
         content: "—";
@@ -380,13 +488,66 @@
         opacity: 0.6;
     }
 
-    /* Pagination */
+    /* Custom pagination footer */
     .inbox-pagination {
-        padding: 12px 24px;
+        padding: 10px 20px;
         border-top: 1px solid var(--border-subtle, #2c2c30);
         display: flex;
-        justify-content: flex-end;
-        background: var(--bg-surface, #0f0f12);
+        align-items: center;
+        justify-content: space-between;
+        background: var(--bg-surface, #1a1a1f);
+        flex-shrink: 0;
+    }
+
+    .pagination-info {
+        font-size: 12px;
+        color: var(--text-muted, #8e8e96);
+    }
+
+    .pagination-links {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 30px;
+        height: 30px;
+        padding: 0 6px;
+        border-radius: 6px;
+        font-size: 13px;
+        color: var(--text-secondary, #d0d0d8);
+        text-decoration: none;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid transparent;
+        transition: all 0.15s;
+        cursor: pointer;
+    }
+
+    .page-btn:hover:not(.disabled):not(.current) {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.1);
+    }
+
+    .page-btn.current {
+        background: rgba(79, 70, 229, 0.3);
+        border-color: #4f46e5;
+        color: #a5b4fc;
+        font-weight: 600;
+    }
+
+    .page-btn.disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+
+    .page-ellipsis {
+        font-size: 13px;
+        color: var(--text-muted, #8e8e96);
+        padding: 0 4px;
     }
 
     /* Empty state */
@@ -398,13 +559,12 @@
         justify-content: center;
         text-align: center;
         gap: 16px;
+        padding: 40px;
         background: var(--bg-card, #0f0f12);
     }
     .empty-icon svg {
         stroke: var(--text-muted, #6c6c74);
         opacity: 0.4;
-        width: 90px;
-        height: 90px;
     }
     .empty-inbox h3 {
         font-size: 22px;
@@ -416,6 +576,7 @@
         font-size: 14px;
         color: var(--text-muted, #9ca3af);
         max-width: 360px;
+        margin: 0;
     }
     .empty-compose-btn {
         margin-top: 8px;
@@ -431,33 +592,25 @@
     /* Responsive */
     @media (max-width: 800px) {
         .inbox-sidebar {
-            width: 70px;
+            width: 60px;
             padding: 12px 4px;
         }
-        .nav-link span:first-of-type {
+        .nav-link span:first-of-type, .count-badge {
             display: none;
         }
         .nav-link {
             justify-content: center;
             padding: 10px 0;
+            gap: 0;
         }
-        .row-from {
-            width: 140px;
-        }
-        .email-snippet {
-            display: none;
-        }
+        .row-from { width: 120px; }
+        .email-snippet { display: none; }
+        .pagination-info { display: none; }
     }
     @media (max-width: 600px) {
-        .toolbar-center {
-            display: none;
-        }
-        .row-from {
-            width: 110px;
-        }
-        .email-subject {
-            max-width: 160px;
-        }
+        .toolbar-center { display: none; }
+        .row-from { width: 100px; }
+        .email-subject { max-width: 140px; }
     }
 </style>
 
@@ -465,7 +618,7 @@
     function toggleStar(starContainer, emailId) {
         const starSvg = starContainer.querySelector('.star-svg');
         if (!starSvg) return;
-        
+
         fetch(`/admin/mail/${emailId}/star`, {
             method: 'POST',
             headers: {
@@ -474,18 +627,13 @@
                 'Content-Type': 'application/json'
             },
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
-            if (data.is_starred) {
-                starSvg.classList.add('starred-active');
-            } else {
-                starSvg.classList.remove('starred-active');
-            }
+            starSvg.classList.toggle('starred-active', !!data.is_starred);
         })
         .catch(err => console.error('Star toggle error:', err));
     }
 
-    // Select all / batch checkbox (simple)
     const selectAllCheckbox = document.getElementById('selectAllEmails');
     if (selectAllCheckbox) {
         selectAllCheckbox.addEventListener('change', function(e) {
