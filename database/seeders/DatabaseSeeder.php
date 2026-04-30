@@ -7,6 +7,7 @@ use App\Models\Distributor;
 use App\Models\Inquiry;
 use App\Models\Product;
 use App\Models\Inventory;
+use App\Models\Warehouse;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -21,25 +22,93 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password123'),
         ]);
 
-        // Create sample distributors
+        // Create Celesty Warehouses (storage facilities)
+        $warehouses = [
+            [
+                'name' => 'Celesty Mumbai Central Warehouse',
+                'code' => 'WH-MUM-001',
+                'address' => '123 Industrial Area, Andheri East',
+                'city' => 'Mumbai',
+                'state' => 'Maharashtra',
+                'country' => 'India',
+                'postal_code' => '400069',
+                'phone' => '+91 22 1234 5678',
+                'email' => 'mumbai.wh@celesty.com',
+                'manager_name' => 'Rajesh Kumar',
+                'latitude' => 19.0760,
+                'longitude' => 72.8777,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Celesty Delhi NCR Warehouse',
+                'code' => 'WH-DEL-001',
+                'address' => '456 Logistics Park, Gurugram',
+                'city' => 'Gurugram',
+                'state' => 'Haryana',
+                'country' => 'India',
+                'postal_code' => '122001',
+                'phone' => '+91 124 1234 5678',
+                'email' => 'delhi.wh@celesty.com',
+                'manager_name' => 'Priya Sharma',
+                'latitude' => 28.4595,
+                'longitude' => 77.0266,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Celesty Bangalore Warehouse',
+                'code' => 'WH-BLR-001',
+                'address' => '789 Electronic City Phase 1',
+                'city' => 'Bangalore',
+                'state' => 'Karnataka',
+                'country' => 'India',
+                'postal_code' => '560100',
+                'phone' => '+91 80 1234 5678',
+                'email' => 'bangalore.wh@celesty.com',
+                'manager_name' => 'Arun Nair',
+                'latitude' => 12.9716,
+                'longitude' => 77.5946,
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($warehouses as $warehouse) {
+            Warehouse::create($warehouse);
+        }
+
+        // Create sample distributors (these are customers who order from Celesty)
         $distributors = [
             [
-                'name' => 'Celesty Downtown',
-                'address' => '123 Main Street, Downtown',
-                'latitude' => 40.7128,
-                'longitude' => -74.0060,
+                'name' => 'Sweet Treats Café',
+                'address' => '45 Marine Drive, Mumbai',
+                'contact_person' => 'John Doe',
+                'phone' => '+91 98765 43210',
+                'email' => 'john@sweettreats.com',
+                'service_area' => 'South Mumbai',
+                'latitude' => 18.9442,
+                'longitude' => 72.8236,
+                'is_active' => true,
             ],
             [
-                'name' => 'Celesty Uptown',
-                'address' => '456 Broadway, Uptown',
-                'latitude' => 40.7580,
-                'longitude' => -73.9855,
+                'name' => 'Ice Cream Paradise',
+                'address' => '78 Connaught Place, Delhi',
+                'contact_person' => 'Jane Smith',
+                'phone' => '+91 98765 43211',
+                'email' => 'jane@icecreamparadise.com',
+                'service_area' => 'Central Delhi',
+                'latitude' => 28.6315,
+                'longitude' => 77.2167,
+                'is_active' => true,
             ],
             [
-                'name' => 'Celesty Westside',
-                'address' => '789 West Avenue, Westside',
-                'latitude' => 40.7489,
-                'longitude' => -73.9680,
+                'name' => 'Frozen Delights',
+                'address' => '12 Koramangala, Bangalore',
+                'contact_person' => 'Mike Johnson',
+                'phone' => '+91 98765 43212',
+                'email' => 'mike@frozendelights.com',
+                'service_area' => 'Bangalore Central',
+                'latitude' => 12.9352,
+                'longitude' => 77.6245,
+                'is_active' => true,
             ],
         ];
 
@@ -50,18 +119,20 @@ class DatabaseSeeder extends Seeder
         // Create sample inquiries
         $inquiries = [
             [
-                'name' => 'John Doe',
-                'business_name' => 'Sweet Treats Café',
-                'email' => 'john@example.com',
-                'requirement' => 'Looking to become a distributor for downtown area. Please send me more information.',
+                'name' => 'Amit Patel',
+                'business_name' => 'Patel Sweets',
+                'email' => 'amit@patelsweets.com',
+                'requirement' => 'Looking to become a distributor for Ahmedabad area. We have 5 retail outlets and need bulk supply.',
                 'status' => 'new',
+                'inquiry_number' => 'INQ-001',
             ],
             [
-                'name' => 'Jane Smith',
-                'business_name' => 'Ice Cream Paradise',
-                'email' => 'jane@example.com',
-                'requirement' => 'Interested in bulk orders for our chain of ice cream shops.',
+                'name' => 'Sarah Williams',
+                'business_name' => 'City Ice Cream Co.',
+                'email' => 'sarah@cityicecream.com',
+                'requirement' => 'Interested in wholesale pricing for our chain of 10 ice cream parlors across Pune.',
                 'status' => 'read',
+                'inquiry_number' => 'INQ-002',
             ],
         ];
 
@@ -75,41 +146,67 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Vanilla Classic',
                 'sku' => 'ICE-VAN-001',
                 'description' => 'Rich and creamy vanilla ice cream made with real vanilla beans',
-                'category' => 'Classic Flavors',
+                'category' => 'Ice Cream',
                 'size' => '500ml',
                 'price' => 250.00,
                 'unit' => 'tub',
-                'low_stock_threshold' => 20,
+                'low_stock_threshold' => 50,
+                'is_active' => true,
             ],
             [
                 'name' => 'Chocolate Fudge',
                 'sku' => 'ICE-CHO-002',
                 'description' => 'Decadent chocolate ice cream with fudge swirls',
-                'category' => 'Classic Flavors',
+                'category' => 'Ice Cream',
                 'size' => '500ml',
                 'price' => 280.00,
                 'unit' => 'tub',
-                'low_stock_threshold' => 20,
+                'low_stock_threshold' => 50,
+                'is_active' => true,
             ],
             [
                 'name' => 'Mango Delight',
                 'sku' => 'ICE-MAN-003',
                 'description' => 'Fresh Alphonso mango ice cream',
-                'category' => 'Fruit Flavors',
+                'category' => 'Ice Cream',
                 'size' => '500ml',
                 'price' => 300.00,
                 'unit' => 'tub',
-                'low_stock_threshold' => 15,
+                'low_stock_threshold' => 40,
+                'is_active' => true,
             ],
             [
-                'name' => 'Butterscotch',
+                'name' => 'Butterscotch Bliss',
                 'sku' => 'ICE-BUT-004',
                 'description' => 'Creamy butterscotch with crunchy praline',
-                'category' => 'Classic Flavors',
+                'category' => 'Ice Cream',
                 'size' => '1L',
                 'price' => 450.00,
                 'unit' => 'tub',
-                'low_stock_threshold' => 10,
+                'low_stock_threshold' => 30,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Strawberry Swirl',
+                'sku' => 'ICE-STR-005',
+                'description' => 'Fresh strawberry ice cream with real fruit chunks',
+                'category' => 'Ice Cream',
+                'size' => '500ml',
+                'price' => 290.00,
+                'unit' => 'tub',
+                'low_stock_threshold' => 35,
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Kesar Pista',
+                'sku' => 'ICE-KES-006',
+                'description' => 'Traditional Indian flavor with saffron and pistachios',
+                'category' => 'Ice Cream',
+                'size' => '500ml',
+                'price' => 350.00,
+                'unit' => 'tub',
+                'low_stock_threshold' => 25,
+                'is_active' => true,
             ],
         ];
 
@@ -117,18 +214,20 @@ class DatabaseSeeder extends Seeder
             Product::create($productData);
         }
 
-        // Create sample inventory at distributors
-        $distributorIds = Distributor::pluck('id')->toArray();
+        // Create inventory at warehouses (Celesty's stock)
+        $warehouseIds = Warehouse::pluck('id')->toArray();
         $productIds = Product::pluck('id')->toArray();
+        $locations = ['Cold Storage A', 'Cold Storage B', 'Freezer Zone 1', 'Freezer Zone 2', 'Main Warehouse'];
 
-        foreach ($distributorIds as $distributorId) {
+        foreach ($warehouseIds as $warehouseId) {
             foreach ($productIds as $productId) {
                 Inventory::create([
-                    'distributor_id' => $distributorId,
+                    'warehouse_id' => $warehouseId,
                     'product_id' => $productId,
-                    'quantity' => rand(10, 100),
-                    'reserved_quantity' => rand(0, 5),
-                    'location' => 'Main Storage',
+                    'distributor_id' => null, // No distributor assigned yet
+                    'quantity' => rand(50, 500),
+                    'reserved_quantity' => rand(0, 20),
+                    'location' => $locations[array_rand($locations)],
                 ]);
             }
         }
