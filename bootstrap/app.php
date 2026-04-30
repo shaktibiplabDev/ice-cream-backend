@@ -6,7 +6,8 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
-use App\Http\Middleware\Cors;
+use Illuminate\Http\Middleware\HandleCors;
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -15,9 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Add CORS middleware to API routes
+        // Add Laravel's CORS middleware to API routes
         $middleware->api(prepend: [
-            Cors::class,
+            HandleCors::class,
         ]);
 
         // Remove CSRF for API routes
