@@ -1367,11 +1367,31 @@
                 <span class="nav-icon">🚚</span>
                 Distributors
             </a>
+            <a href="{{ route('admin.products.index') }}" class="nav-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                <span class="nav-icon">📦</span>
+                Products
+            </a>
+            <a href="{{ route('admin.inventory.index') }}" class="nav-item {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}">
+                <span class="nav-icon">📊</span>
+                Inventory
+            </a>
 
             <span class="nav-label" style="margin-top: 1rem;">Operations</span>
             <a href="{{ route('admin.distributors.create') }}" class="nav-item {{ request()->routeIs('admin.distributors.create') ? 'active' : '' }}">
                 <span class="nav-icon">➕</span>
                 Add Distributor
+            </a>
+            <a href="{{ route('admin.inventory.create') }}" class="nav-item {{ request()->routeIs('admin.inventory.create') ? 'active' : '' }}">
+                <span class="nav-icon">➕</span>
+                Add Stock
+            </a>
+            <a href="{{ route('admin.inventory.low-stock') }}" class="nav-item {{ request()->routeIs('admin.inventory.low-stock') ? 'active' : '' }}">
+                <span class="nav-icon">⚠️</span>
+                Low Stock Alert
+            </a>
+            <a href="{{ route('admin.inventory.history') }}" class="nav-item {{ request()->routeIs('admin.inventory.history') ? 'active' : '' }}">
+                <span class="nav-icon">📜</span>
+                Stock History
             </a>
             <a href="{{ url('/') }}" class="nav-item" target="_blank">
                 <span class="nav-icon">🏠</span>
@@ -1424,7 +1444,8 @@
             <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard</a>
             <a href="{{ route('admin.inquiries.index') }}" class="nav-item {{ request()->routeIs('admin.inquiries.*') ? 'active' : '' }}">Inquiries</a>
             <a href="{{ route('admin.distributors.index') }}" class="nav-item {{ request()->routeIs('admin.distributors.*') ? 'active' : '' }}">Distributors</a>
-            <a href="{{ route('admin.distributors.create') }}" class="nav-item {{ request()->routeIs('admin.distributors.create') ? 'active' : '' }}">Add Distributor</a>
+            <a href="{{ route('admin.products.index') }}" class="nav-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Products</a>
+            <a href="{{ route('admin.inventory.index') }}" class="nav-item {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}">Inventory</a>
         </nav>
 
         <main class="content">
