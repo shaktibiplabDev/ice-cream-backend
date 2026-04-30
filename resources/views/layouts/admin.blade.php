@@ -7,7 +7,7 @@
         ->take(2)
         ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
         ->implode('') ?: 'AD';
-    $navNewInquiries = \App\Models\LeadInquiry::where('status', 'new')->count();
+    $navNewInquiries = \App\Models\Inquiry::where('status', 'new')->count();
     $companySettings = \App\Models\CompanySetting::getSettings();
     $hour = (int) now()->format('G');
     $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
