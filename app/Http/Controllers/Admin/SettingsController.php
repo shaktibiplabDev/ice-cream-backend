@@ -62,7 +62,28 @@ class SettingsController extends Controller
             
             // Terms
             'terms_and_conditions' => 'nullable|string',
+
+            // Email Configuration (IMAP for receiving)
+            'email_fetching_enabled' => 'boolean',
+            'imap_host' => 'nullable|string|max:255',
+            'imap_port' => 'nullable|integer',
+            'imap_username' => 'nullable|string|max:255',
+            'imap_password' => 'nullable|string|max:255',
+            'imap_encryption' => 'nullable|string|max:10',
+            'imap_folder' => 'nullable|string|max:50',
+
+            // Email Configuration (SMTP for sending)
+            'mail_mailer' => 'nullable|string|max:20',
+            'mail_host' => 'nullable|string|max:255',
+            'mail_port' => 'nullable|integer',
+            'mail_username' => 'nullable|string|max:255',
+            'mail_password' => 'nullable|string|max:255',
+            'mail_encryption' => 'nullable|string|max:10',
+            'mail_from_address' => 'nullable|email|max:255',
+            'mail_from_name' => 'nullable|string|max:255',
         ]);
+
+        $validated['email_fetching_enabled'] = $request->boolean('email_fetching_enabled', false);
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
