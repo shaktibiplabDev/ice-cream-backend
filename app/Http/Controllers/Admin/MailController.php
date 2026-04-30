@@ -168,10 +168,6 @@ class MailController extends Controller
 
     public function destroy(Email $email)
     {
-        if ($email->created_by !== auth('admin')->id()) {
-            abort(403);
-        }
-
         // Delete attachments
         if ($email->attachments) {
             foreach ($email->attachments as $attachment) {

@@ -1569,24 +1569,16 @@
                 Categories
             </a>
 
-            <span class="nav-label" style="margin-top: 1rem;">Email</span>
-            <a href="{{ route('admin.mail.inbox') }}" class="nav-item {{ request()->routeIs('admin.mail.inbox') ? 'active' : '' }}">
+            <span class="nav-label" style="margin-top: 1rem;">Communication</span>
+            <a href="{{ route('admin.mail.inbox') }}" class="nav-item {{ request()->routeIs('admin.mail.*') ? 'active' : '' }}">
                 <span class="nav-icon">📧</span>
-                Inbox
+                Email
                 @php
                     $unreadCount = \App\Models\Email::inbox(auth('admin')->id())->unread()->count();
                 @endphp
                 @if($unreadCount > 0)
                     <span class="nav-badge">{{ $unreadCount }}</span>
                 @endif
-            </a>
-            <a href="{{ route('admin.mail.compose') }}" class="nav-item {{ request()->routeIs('admin.mail.compose') ? 'active' : '' }}">
-                <span class="nav-icon">✉️</span>
-                Compose
-            </a>
-            <a href="{{ route('admin.mail.sent') }}" class="nav-item {{ request()->routeIs('admin.mail.sent') ? 'active' : '' }}">
-                <span class="nav-icon">📤</span>
-                Sent
             </a>
 
             <span class="nav-label" style="margin-top: 1rem;">Configuration</span>
@@ -1732,6 +1724,31 @@
             const savedTheme = localStorage.getItem('admin-theme') || 'dark';
             document.body.setAttribute('data-theme', savedTheme);
             updateThemeUI(savedTheme);
+
+            // Sidebar scroll position memory
+            const sidebar = document.querySelector('.nav-section');
+            const savedScroll = localStorage.getItem('sidebar-scroll');
+
+            // Restore scroll position
+            if (savedScroll && sidebar) {
+                sidebar.scrollTop = parseInt(savedScroll, 10);
+            }
+
+            // Save scroll position before unload
+            window.addEventListener('beforeunload', function() {
+                if (sidebar) {
+                    localStorage.setItem('sidebar-scroll', sidebar.scrollTop);
+                }
+            });
+
+            // Also save on scroll (throttled)
+            let scrollTimeout;
+            sidebar.addEventListener('scroll', function() {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(function() {
+                    localStorage.setItem('sidebar-scroll', sidebar.scrollTop);
+                }, 100);
+            });
         });
     </script>
 
