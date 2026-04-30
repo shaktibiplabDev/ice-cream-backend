@@ -72,12 +72,35 @@
                         <span id="cart-subtotal" style="font-weight: 500;">₹0.00</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem;">
-                        <span>Tax:</span>
-                        <span id="cart-tax" style="font-weight: 500;">₹0.00</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem;">
                         <span>Discount:</span>
                         <span id="cart-discount" style="font-weight: 500; color: #f87171;">-₹0.00</span>
+                    </div>
+                    <!-- GST Breakdown -->
+                    <div id="gst-section" style="display: none;">
+                        @if($companySettings->gst_type !== 'none')
+                            <div style="font-size: 0.6875rem; color: var(--text-muted); margin-bottom: 0.25rem; text-transform: uppercase;">
+                                GST ({{ $companySettings->gst_type === 'b2b' ? 'IGST' : 'CGST+SGST' }} {{ $companySettings->gst_percentage }}%)
+                            </div>
+                            @if($companySettings->gst_type === 'b2c')
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.25rem;">
+                                    <span>CGST ({{ $companySettings->cgst_percentage }}%):</span>
+                                    <span id="cart-cgst">₹0.00</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.25rem;">
+                                    <span>SGST ({{ $companySettings->sgst_percentage }}%):</span>
+                                    <span id="cart-sgst">₹0.00</span>
+                                </div>
+                            @else
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.25rem;">
+                                    <span>IGST ({{ $companySettings->igst_percentage }}%):</span>
+                                    <span id="cart-igst">₹0.00</span>
+                                </div>
+                            @endif
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem; padding-top: 0.25rem; border-top: 1px dashed var(--border-subtle);">
+                                <span>Total Tax:</span>
+                                <span id="cart-tax" style="font-weight: 500;">₹0.00</span>
+                            </div>
+                        @endif
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 600; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
                         <span>Total:</span>
@@ -204,6 +227,7 @@
     let cart = [];
     let warehouses = @json($warehouses);
     let products = @json($products);
+    let companySettings = @json($companySettings);
 
     // Distributor selection change
     document.getElementById('distributor-select').addEventListener('change', function() {
@@ -385,30 +409,61 @@
         updateCheckoutButton();
     }
 
-    // Calculate totals
+    // Calculate totals with GST
     function calculateTotals() {
         let subtotal = 0;
-        let tax = 0;
         let discount = 0;
 
         cart.forEach(item => {
             const itemSubtotal = item.quantity * item.unit_price;
             const itemDiscount = itemSubtotal * (item.discount_percent / 100);
-            const itemTaxable = itemSubtotal - itemDiscount;
-            const itemTax = itemTaxable * (item.tax_percent / 100);
 
             subtotal += itemSubtotal;
             discount += itemDiscount;
-            tax += itemTax;
         });
 
-        const total = subtotal - discount + tax;
+        const taxableAmount = subtotal - discount;
+        let cgst = 0, sgst = 0, igst = 0, totalTax = 0;
+
+        // Calculate GST based on company settings
+        if (companySettings && companySettings.gst_type !== 'none' && companySettings.gst_percentage > 0) {
+            if (companySettings.gst_type === 'b2b') {
+                // B2B: IGST
+                igst = taxableAmount * (companySettings.igst_percentage / 100);
+                totalTax = igst;
+            } else {
+                // B2C: CGST + SGST
+                cgst = taxableAmount * (companySettings.cgst_percentage / 100);
+                sgst = taxableAmount * (companySettings.sgst_percentage / 100);
+                totalTax = cgst + sgst;
+            }
+        }
+
+        const total = taxableAmount + totalTax;
 
         document.getElementById('cart-subtotal').textContent = '₹' + subtotal.toFixed(2);
-        document.getElementById('cart-tax').textContent = '₹' + tax.toFixed(2);
         document.getElementById('cart-discount').textContent = '-₹' + discount.toFixed(2);
         document.getElementById('cart-total').textContent = '₹' + total.toFixed(2);
         document.getElementById('checkout-total').textContent = '₹' + total.toFixed(2);
+
+        // Show/hide GST section and update values
+        const gstSection = document.getElementById('gst-section');
+        if (companySettings && companySettings.gst_type !== 'none' && companySettings.gst_percentage > 0) {
+            gstSection.style.display = 'block';
+            document.getElementById('cart-tax').textContent = '₹' + totalTax.toFixed(2);
+
+            if (companySettings.gst_type === 'b2c') {
+                const cgstEl = document.getElementById('cart-cgst');
+                const sgstEl = document.getElementById('cart-sgst');
+                if (cgstEl) cgstEl.textContent = '₹' + cgst.toFixed(2);
+                if (sgstEl) sgstEl.textContent = '₹' + sgst.toFixed(2);
+            } else {
+                const igstEl = document.getElementById('cart-igst');
+                if (igstEl) igstEl.textContent = '₹' + igst.toFixed(2);
+            }
+        } else {
+            gstSection.style.display = 'none';
+        }
     }
 
     // Update checkout button state

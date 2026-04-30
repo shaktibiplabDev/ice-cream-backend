@@ -10,6 +10,7 @@ use App\Models\Inventory;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\StockMovement;
+use App\Models\CompanySetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -23,8 +24,9 @@ class PosController extends Controller
         $distributors = Distributor::where('is_active', true)->get();
         $products = Product::where('is_active', true)->get();
         $warehouses = Warehouse::where('is_active', true)->get();
+        $companySettings = CompanySetting::getSettings();
 
-        return view('admin.pos.index', compact('distributors', 'products', 'warehouses'));
+        return view('admin.pos.index', compact('distributors', 'products', 'warehouses', 'companySettings'));
     }
 
     /**
@@ -120,29 +122,46 @@ class PosController extends Controller
                 }
             }
 
+            // Get company settings for GST
+            $companySettings = CompanySetting::getSettings();
+
             // Calculate totals
             $subtotal = 0;
-            $totalTax = 0;
             $totalDiscount = 0;
 
             foreach ($request->items as $item) {
                 $qty = $item['quantity'];
                 $unitPrice = $item['unit_price'];
                 $discountPercent = $item['discount_percent'] ?? 0;
-                $taxPercent = $item['tax_percent'] ?? 0;
 
                 $itemSubtotal = $qty * $unitPrice;
                 $itemDiscount = $itemSubtotal * ($discountPercent / 100);
-                $itemTaxable = $itemSubtotal - $itemDiscount;
-                $itemTax = $itemTaxable * ($taxPercent / 100);
 
                 $subtotal += $itemSubtotal;
                 $totalDiscount += $itemDiscount;
-                $totalTax += $itemTax;
             }
 
             $discountAmount = $request->discount_amount ?? 0;
-            $totalAmount = $subtotal - $totalDiscount - $discountAmount + $totalTax;
+            $taxableAmount = $subtotal - $totalDiscount - $discountAmount;
+
+            // Calculate GST based on company settings
+            $cgst = 0;
+            $sgst = 0;
+            $igst = 0;
+            $totalTax = 0;
+
+            if ($companySettings->isGstEnabled()) {
+                if ($companySettings->isB2B()) {
+                    $igst = $taxableAmount * ($companySettings->igst_percentage / 100);
+                    $totalTax = $igst;
+                } else {
+                    $cgst = $taxableAmount * ($companySettings->cgst_percentage / 100);
+                    $sgst = $taxableAmount * ($companySettings->sgst_percentage / 100);
+                    $totalTax = $cgst + $sgst;
+                }
+            }
+
+            $totalAmount = $taxableAmount + $totalTax;
 
             // Create sale
             $sale = Sale::create([
@@ -152,6 +171,9 @@ class PosController extends Controller
                 'sale_date' => now(),
                 'subtotal' => $subtotal,
                 'tax_amount' => $totalTax,
+                'cgst_amount' => $cgst,
+                'sgst_amount' => $sgst,
+                'igst_amount' => $igst,
                 'discount_amount' => $totalDiscount + $discountAmount,
                 'total_amount' => max(0, $totalAmount),
                 'status' => 'completed',

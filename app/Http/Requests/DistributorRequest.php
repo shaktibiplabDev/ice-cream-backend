@@ -19,6 +19,8 @@ class DistributorRequest extends FormRequest
             'address' => 'required|string',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
+            'gst_number' => 'nullable|string|max:20',
+            'business_type' => 'nullable|in:b2b,b2c',
             'website' => 'nullable|url|max:255',
             'description' => 'nullable|string',
             'service_area' => 'nullable|string|max:500',

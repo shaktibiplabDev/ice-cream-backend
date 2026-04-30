@@ -98,6 +98,27 @@
                 </div>
 
                 <div class="form-field">
+                    <label class="form-label" for="gst_number">
+                        GST Number
+                        <span class="optional-label">Optional</span>
+                    </label>
+                    <input class="form-input" type="text" name="gst_number" id="gst_number" value="{{ old('gst_number', $distributor->gst_number ?? '') }}" placeholder="22AAAAA0000A1Z5">
+                    @error('gst_number') <p class="form-error">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="business_type">
+                        Business Type
+                        <span class="optional-label">Optional</span>
+                    </label>
+                    <select class="form-select" name="business_type" id="business_type">
+                        <option value="b2c" @selected(old('business_type', $distributor->business_type ?? 'b2c') === 'b2c')>B2C (Retail)</option>
+                        <option value="b2b" @selected(old('business_type', $distributor->business_type ?? '') === 'b2b')>B2B (Wholesale)</option>
+                    </select>
+                    @error('business_type') <p class="form-error">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="form-field">
                     <label class="form-label" for="website">
                         Website
                         <span class="optional-label">Optional</span>

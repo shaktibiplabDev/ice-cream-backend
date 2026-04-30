@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\PosController;
+use App\Http\Controllers\Admin\SettingsController;
 
 // Admin Authentication Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -78,6 +79,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/pos/check-inventory', [PosController::class, 'checkInventory'])->name('pos.check-inventory');
         Route::get('/pos/history', [PosController::class, 'history'])->name('pos.history');
         Route::get('/pos/bill/{sale}', [PosController::class, 'bill'])->name('pos.bill');
+
+        // Company Settings
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
     });
 });
 

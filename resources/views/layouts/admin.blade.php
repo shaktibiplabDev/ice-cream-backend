@@ -1420,6 +1420,12 @@
                 Add Warehouse
             </a>
 
+            <span class="nav-label" style="margin-top: 1rem;">Configuration</span>
+            <a href="{{ route('admin.settings.index') }}" class="nav-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                <span class="nav-icon">⚙️</span>
+                Company Settings
+            </a>
+
             <span class="nav-label" style="margin-top: 1rem;">External</span>
             <a href="{{ url('/') }}" class="nav-item" target="_blank">
                 <span class="nav-icon">🏠</span>

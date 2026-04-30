@@ -16,6 +16,8 @@ class Distributor extends Model
         'address',
         'phone',
         'email',
+        'gst_number',
+        'business_type',
         'website',
         'description',
         'service_area',

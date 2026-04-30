@@ -96,8 +96,30 @@
                     </div>
                 @endif
                 @if($sale->tax_amount > 0)
-                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.9375rem;">
-                        <span>Tax:</span>
+                    <div style="font-size: 0.6875rem; color: var(--text-muted); margin-bottom: 0.25rem; text-transform: uppercase; margin-top: 0.5rem;">
+                        GST Breakdown
+                    </div>
+                    @if($sale->igst_amount > 0)
+                        <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.8125rem;">
+                            <span>IGST:</span>
+                            <span>₹{{ number_format($sale->igst_amount, 2) }}</span>
+                        </div>
+                    @else
+                        @if($sale->cgst_amount > 0)
+                            <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.8125rem;">
+                                <span>CGST:</span>
+                                <span>₹{{ number_format($sale->cgst_amount, 2) }}</span>
+                            </div>
+                        @endif
+                        @if($sale->sgst_amount > 0)
+                            <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.8125rem;">
+                                <span>SGST:</span>
+                                <span>₹{{ number_format($sale->sgst_amount, 2) }}</span>
+                            </div>
+                        @endif
+                    @endif
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.9375rem; border-top: 1px dashed var(--border-subtle);">
+                        <span>Total Tax:</span>
                         <span>₹{{ number_format($sale->tax_amount, 2) }}</span>
                     </div>
                 @endif
