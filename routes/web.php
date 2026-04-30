@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\DistributorController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\WarehouseController;
+use App\Http\Controllers\Admin\MapController;
+use App\Http\Controllers\Admin\SearchController;
 
 // Admin Authentication Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -61,6 +63,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/warehouses/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('warehouses.edit');
         Route::put('/warehouses/{warehouse}', [WarehouseController::class, 'update'])->name('warehouses.update');
         Route::delete('/warehouses/{warehouse}', [WarehouseController::class, 'destroy'])->name('warehouses.destroy');
+
+        // Territory Map
+        Route::get('/map', [MapController::class, 'index'])->name('map.index');
+
+        // Search
+        Route::get('/search', [SearchController::class, 'index'])->name('search');
     });
 });
 

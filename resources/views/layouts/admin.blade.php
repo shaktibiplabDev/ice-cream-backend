@@ -613,7 +613,11 @@
             border-top: 1px solid var(--border-subtle);
         }
 
-        /* Buttons */
+        /* Buttons - Global text-decoration reset for links styled as buttons */
+        a[class^="btn-"], a[class*=" btn-"] {
+            text-decoration: none !important;
+        }
+
         .btn-primary {
             background: var(--accent-gradient);
             border: none;
@@ -627,11 +631,13 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            text-decoration: none;
         }
 
         .btn-primary:hover {
             transform: translateY(-1px);
             box-shadow: var(--shadow-glow);
+            color: white;
         }
 
         .btn-secondary {
@@ -647,10 +653,12 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            text-decoration: none;
         }
 
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
         }
 
         .btn-danger {
@@ -663,10 +671,12 @@
             color: #f87171;
             cursor: pointer;
             transition: all 0.2s;
+            text-decoration: none;
         }
 
         .btn-danger:hover {
             background: rgba(239, 68, 68, 0.25);
+            color: #f87171;
         }
 
         /* Stats grid */
@@ -1287,7 +1297,11 @@
         .if-mint { background: linear-gradient(90deg, #10b981, #34d399); }
         .if-blush { background: linear-gradient(90deg, #a855f7, #c084fc); }
 
-        /* Chip */
+        /* Chip & Action Links - Remove underlines */
+        .chip, a.chip, .action-link, a.action-link, .seller-item, a.seller-item {
+            text-decoration: none !important;
+        }
+
         .chip {
             display: inline-flex;
             align-items: center;
@@ -1351,11 +1365,17 @@
         </div>
 
         <nav class="nav-section">
-            <span class="nav-label">Main</span>
+            <span class="nav-label">Overview</span>
             <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <span class="nav-icon">📊</span>
                 Dashboard
             </a>
+            <a href="{{ route('admin.map.index') }}" class="nav-item {{ request()->routeIs('admin.map.*') ? 'active' : '' }}">
+                <span class="nav-icon">🗺️</span>
+                Territory Map
+            </a>
+
+            <span class="nav-label" style="margin-top: 1rem;">Leads & Partners</span>
             <a href="{{ route('admin.inquiries.index') }}" class="nav-item {{ request()->routeIs('admin.inquiries.*') ? 'active' : '' }}">
                 <span class="nav-icon">📩</span>
                 Inquiries
@@ -1367,32 +1387,22 @@
                 <span class="nav-icon">🚚</span>
                 Distributors
             </a>
+
+            <span class="nav-label" style="margin-top: 1rem;">Products & Inventory</span>
             <a href="{{ route('admin.products.index') }}" class="nav-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
                 <span class="nav-icon">📦</span>
                 Products
-            </a>
-            <a href="{{ route('admin.inventory.index') }}" class="nav-item {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}">
-                <span class="nav-icon">📊</span>
-                Inventory
             </a>
             <a href="{{ route('admin.warehouses.index') }}" class="nav-item {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">
                 <span class="nav-icon">🏭</span>
                 Warehouses
             </a>
+            <a href="{{ route('admin.inventory.index') }}" class="nav-item {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}">
+                <span class="nav-icon">📋</span>
+                Inventory
+            </a>
 
-            <span class="nav-label" style="margin-top: 1rem;">Operations</span>
-            <a href="{{ route('admin.distributors.create') }}" class="nav-item {{ request()->routeIs('admin.distributors.create') ? 'active' : '' }}">
-                <span class="nav-icon">➕</span>
-                Add Distributor
-            </a>
-            <a href="{{ route('admin.inventory.create') }}" class="nav-item {{ request()->routeIs('admin.inventory.create') ? 'active' : '' }}">
-                <span class="nav-icon">➕</span>
-                Add Stock
-            </a>
-            <a href="{{ route('admin.warehouses.create') }}" class="nav-item {{ request()->routeIs('admin.warehouses.create') ? 'active' : '' }}">
-                <span class="nav-icon">➕</span>
-                Add Warehouse
-            </a>
+            <span class="nav-label" style="margin-top: 1rem;">Quick Actions</span>
             <a href="{{ route('admin.inventory.low-stock') }}" class="nav-item {{ request()->routeIs('admin.inventory.low-stock') ? 'active' : '' }}">
                 <span class="nav-icon">⚠️</span>
                 Low Stock Alert
@@ -1401,6 +1411,12 @@
                 <span class="nav-icon">📜</span>
                 Stock History
             </a>
+            <a href="{{ route('admin.warehouses.create') }}" class="nav-item {{ request()->routeIs('admin.warehouses.create') ? 'active' : '' }}">
+                <span class="nav-icon">➕</span>
+                Add Warehouse
+            </a>
+
+            <span class="nav-label" style="margin-top: 1rem;">External</span>
             <a href="{{ url('/') }}" class="nav-item" target="_blank">
                 <span class="nav-icon">🏠</span>
                 Public Site
@@ -1424,10 +1440,10 @@
         <header class="topbar">
             <div class="topbar-title">{{ $greeting }}, <span>{{ $firstName }}</span></div>
 
-            <div class="search-bar">
+            <form class="search-bar" action="{{ route('admin.search') }}" method="GET">
                 <span class="search-icon">🔍</span>
-                <input type="search" placeholder="Search inquiries, distributors...">
-            </div>
+                <input type="search" name="q" placeholder="Search inquiries, distributors..." value="{{ request('q') }}">
+            </form>
 
             <div class="topbar-right">
                 <a class="icon-btn" href="{{ route('admin.inquiries.index') }}">
@@ -1450,9 +1466,9 @@
 
         <nav class="mobile-nav">
             <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard</a>
+            <a href="{{ route('admin.map.index') }}" class="nav-item {{ request()->routeIs('admin.map.*') ? 'active' : '' }}">Map</a>
             <a href="{{ route('admin.inquiries.index') }}" class="nav-item {{ request()->routeIs('admin.inquiries.*') ? 'active' : '' }}">Inquiries</a>
             <a href="{{ route('admin.distributors.index') }}" class="nav-item {{ request()->routeIs('admin.distributors.*') ? 'active' : '' }}">Distributors</a>
-            <a href="{{ route('admin.products.index') }}" class="nav-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Products</a>
             <a href="{{ route('admin.inventory.index') }}" class="nav-item {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}">Inventory</a>
             <a href="{{ route('admin.warehouses.index') }}" class="nav-item {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">Warehouses</a>
         </nav>
