@@ -107,17 +107,17 @@
         box-shadow: 0 0 8px currentColor;
     }
 
-    /* Leaflet Popup Styling - High Contrast */
+    /* Leaflet Popup Styling - High Contrast White */
     .leaflet-popup-content-wrapper {
-        background: #1a1d24;
+        background: #ffffff;
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        border: 2px solid #000000;
     }
 
     .leaflet-popup-tip {
-        background: #1a1d24;
-        border: 1px solid rgba(255,255,255,0.1);
+        background: #ffffff;
+        border: 2px solid #000000;
     }
 
     .leaflet-popup-content {
@@ -129,7 +129,7 @@
         padding: 1rem;
         min-width: 200px;
         max-width: 280px;
-        color: #ffffff;
+        color: #000000;
     }
 
     .popup-header {
@@ -138,7 +138,7 @@
         gap: 0.75rem;
         margin-bottom: 0.75rem;
         padding-bottom: 0.75rem;
-        border-bottom: 1px solid var(--border-subtle);
+        border-bottom: 2px solid #e5e7eb;
     }
 
     .popup-icon {
@@ -164,12 +164,12 @@
         font-size: 1rem;
         font-weight: 600;
         margin: 0;
-        color: #ffffff;
+        color: #000000;
     }
 
     .popup-title span {
         font-size: 0.75rem;
-        color: #9ca3af;
+        color: #4b5563;
     }
 
     .popup-body {
@@ -185,12 +185,13 @@
     }
 
     .popup-row .label {
-        color: #9ca3af;
+        color: #4b5563;
+        font-weight: 500;
     }
 
     .popup-row .value {
-        color: #ffffff;
-        font-weight: 500;
+        color: #000000;
+        font-weight: 600;
     }
 
     .status-badge {
@@ -229,16 +230,17 @@
         flex: 1;
         text-align: center;
         padding: 0.5rem;
-        background: rgba(255,255,255,0.1);
+        background: #000000;
         border-radius: 6px;
         font-size: 0.75rem;
         color: #ffffff;
+        font-weight: 600;
         text-decoration: none;
         transition: all 0.2s;
     }
 
     .popup-actions a:hover {
-        background: rgba(255,255,255,0.2);
+        background: #374151;
         color: #ffffff;
     }
 
@@ -346,7 +348,7 @@
                     <div class="popup-row">
                         <span class="label">📍 Address</span>
                     </div>
-                    <div style="font-size: 0.8125rem; color: #9ca3af; margin-bottom: 0.5rem;">
+                    <div style="font-size: 0.8125rem; color: #374151; margin-bottom: 0.5rem; font-weight: 500;">
                         ${escapeHtml(warehouse.address || 'N/A')}, ${escapeHtml(warehouse.city || 'N/A')}
                     </div>
                     ${warehouse.manager_name ? `
@@ -420,7 +422,7 @@
                     <div class="popup-row">
                         <span class="label">📍 Address</span>
                     </div>
-                    <div style="font-size: 0.8125rem; color: #9ca3af; margin-bottom: 0.5rem;">
+                    <div style="font-size: 0.8125rem; color: #374151; margin-bottom: 0.5rem; font-weight: 500;">
                         ${escapeHtml(distributor.address || 'Address not available')}
                     </div>
                     ${distributor.phone ? `
