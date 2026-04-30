@@ -10,16 +10,27 @@
         </h1>
     </div>
 
+    <!-- Settings Tabs -->
+    <div class="settings-tabs">
+        <button type="button" class="tab-btn active" data-tab="company">🏢 Company</button>
+        <button type="button" class="tab-btn" data-tab="tax">📋 Tax & GST</button>
+        <button type="button" class="tab-btn" data-tab="invoice">🧾 Invoice</button>
+        <button type="button" class="tab-btn" data-tab="bank">🏦 Bank</button>
+        <button type="button" class="tab-btn" data-tab="email">📧 Email</button>
+    </div>
+
     <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" class="settings-form">
         @csrf
         @method('PUT')
 
-        <div class="settings-grid">
-            
-            <!-- Company Information -->
-            <div class="glass-card">
-                <div class="card-head">
-                    <h2>🏢 Company Information</h2>
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Company Information Tab -->
+            <div id="tab-company" class="tab-pane active">
+                <div class="settings-single">
+                    <div class="glass-card">
+                        <div class="card-head">
+                            <h2>🏢 Company Information</h2>
                 </div>
                 <div class="form-body" style="padding: 1.25rem;">
                     <div class="form-group">
@@ -89,10 +100,12 @@
                 </div>
             </div>
 
-            <!-- GST & Tax Settings -->
-            <div class="glass-card">
-                <div class="card-head">
-                    <h2>📋 GST & Tax Settings</h2>
+            <!-- Tax & GST Tab -->
+            <div id="tab-tax" class="tab-pane">
+                <div class="settings-single">
+                    <div class="glass-card">
+                        <div class="card-head">
+                            <h2>📋 GST & Tax Settings</h2>
                 </div>
                 <div class="form-body" style="padding: 1.25rem;">
                     <div class="form-group">
@@ -150,10 +163,12 @@
                 </div>
             </div>
 
-            <!-- Invoice Settings -->
-            <div class="glass-card">
-                <div class="card-head">
-                    <h2>🧾 Invoice Settings</h2>
+            <!-- Invoice Tab -->
+            <div id="tab-invoice" class="tab-pane">
+                <div class="settings-single">
+                    <div class="glass-card">
+                        <div class="card-head">
+                            <h2>🧾 Invoice Settings</h2>
                 </div>
                 <div class="form-body" style="padding: 1.25rem;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -189,10 +204,12 @@
                 </div>
             </div>
 
-            <!-- Bank Details -->
-            <div class="glass-card">
-                <div class="card-head">
-                    <h2>🏦 Bank Details</h2>
+            <!-- Bank Tab -->
+            <div id="tab-bank" class="tab-pane">
+                <div class="settings-single">
+                    <div class="glass-card">
+                        <div class="card-head">
+                            <h2>🏦 Bank Details</h2>
                 </div>
                 <div class="form-body" style="padding: 1.25rem;">
                     <div class="form-group">
@@ -218,10 +235,12 @@
                 </div>
             </div>
 
-            <!-- Email Configuration (IMAP for Inbox) -->
-            <div class="glass-card">
-                <div class="card-head">
-                    <h2>📧 Email Configuration (Inbox)</h2>
+            <!-- Email Tab -->
+            <div id="tab-email" class="tab-pane">
+                <div class="settings-single">
+                    <div class="glass-card">
+                        <div class="card-head">
+                            <h2>📧 Email Configuration (Inbox)</h2>
                 </div>
                 <div class="form-body" style="padding: 1.25rem;">
                     <div class="form-group" style="margin-bottom: 1rem;">
@@ -333,15 +352,90 @@
         .settings-form {
             margin-bottom: 100px;
         }
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 1.5rem;
+        .settings-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            padding: 0 0.5rem;
+        }
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+        }
+        .tab-btn.active {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+        }
+        .tab-content {
+            position: relative;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .settings-single {
+            max-width: 800px;
+            margin: 0 auto;
         }
         @media (max-width: 768px) {
-            .settings-grid {
-                grid-template-columns: 1fr;
+            .settings-tabs {
+                gap: 0.25rem;
+            }
+            .tab-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
             }
         }
     </style>
+
+    @push('scripts')
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active from all tabs
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+                // Add active to clicked tab
+                btn.classList.add('active');
+                const tabId = 'tab-' + btn.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
+
+                // Save to localStorage
+                localStorage.setItem('settings_active_tab', btn.dataset.tab);
+            });
+        });
+
+        // Restore active tab from localStorage
+        const savedTab = localStorage.getItem('settings_active_tab');
+        if (savedTab) {
+            const btn = document.querySelector('.tab-btn[data-tab="' + savedTab + '"]');
+            if (btn) btn.click();
+        }
+    </script>
+    @endpush
 @endsection

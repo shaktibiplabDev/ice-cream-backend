@@ -191,42 +191,44 @@
                 $decimal = round(($amount - $whole) * 100);
                 $ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
                 $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-                function numberToWordsChunk($num) use (&$ones, &$tens) {
+
+                function numberToWordsChunk($num, $onesArr, $tensArr) {
                     $result = '';
                     if ($num >= 100) {
-                        $result .= $ones[floor($num / 100)] . ' Hundred';
+                        $result .= $onesArr[floor($num / 100)] . ' Hundred';
                         $num %= 100;
                         if ($num > 0) $result .= ' and ';
                     }
                     if ($num >= 20) {
-                        $result .= $tens[floor($num / 10)];
+                        $result .= $tensArr[floor($num / 10)];
                         $num %= 10;
-                        if ($num > 0) $result .= ' ' . $ones[$num];
+                        if ($num > 0) $result .= ' ' . $onesArr[$num];
                     } elseif ($num > 0) {
-                        $result .= $ones[$num];
+                        $result .= $onesArr[$num];
                     }
                     return $result;
                 }
+
                 $parts = [];
                 $temp = $whole;
                 if ($temp >= 10000000) {
-                    $parts[] = numberToWordsChunk(floor($temp / 10000000)) . ' Crore';
+                    $parts[] = numberToWordsChunk(floor($temp / 10000000), $ones, $tens) . ' Crore';
                     $temp %= 10000000;
                 }
                 if ($temp >= 100000) {
-                    $parts[] = numberToWordsChunk(floor($temp / 100000)) . ' Lakh';
+                    $parts[] = numberToWordsChunk(floor($temp / 100000), $ones, $tens) . ' Lakh';
                     $temp %= 100000;
                 }
                 if ($temp >= 1000) {
-                    $parts[] = numberToWordsChunk(floor($temp / 1000)) . ' Thousand';
+                    $parts[] = numberToWordsChunk(floor($temp / 1000), $ones, $tens) . ' Thousand';
                     $temp %= 1000;
                 }
                 if ($temp > 0) {
-                    $parts[] = numberToWordsChunk($temp);
+                    $parts[] = numberToWordsChunk($temp, $ones, $tens);
                 }
                 $result = $whole == 0 ? 'Zero' : implode(' ', $parts);
                 if ($decimal > 0) {
-                    $result .= ' and ' . numberToWordsChunk($decimal) . ' Paise';
+                    $result .= ' and ' . numberToWordsChunk($decimal, $ones, $tens) . ' Paise';
                 }
                 echo $result;
             @endphp
