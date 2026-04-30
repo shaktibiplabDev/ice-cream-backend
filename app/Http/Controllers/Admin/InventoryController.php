@@ -3,46 +3,46 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Distributor;
+use App\Models\Warehouse;
 use App\Models\Inventory;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
-    // Show inventory for a specific distributor
+    // Show inventory for a specific warehouse
     public function index(Request $request)
     {
-        $distributorId = $request->get('distributor_id');
-        $distributors = Distributor::active()->get();
+        $warehouseId = $request->get('warehouse_id');
+        $warehouses = Warehouse::where('is_active', true)->get();
 
         $inventory = collect();
-        $selectedDistributor = null;
+        $selectedWarehouse = null;
 
-        if ($distributorId) {
-            $selectedDistributor = Distributor::findOrFail($distributorId);
+        if ($warehouseId) {
+            $selectedWarehouse = Warehouse::findOrFail($warehouseId);
             $inventory = Inventory::with('product')
-                ->where('distributor_id', $distributorId)
+                ->where('warehouse_id', $warehouseId)
                 ->latest()
                 ->paginate(20);
         }
 
-        return view('admin.inventory.index', compact('inventory', 'distributors', 'selectedDistributor'));
+        return view('admin.inventory.index', compact('inventory', 'warehouses', 'selectedWarehouse'));
     }
 
     // Show form to add stock
     public function create()
     {
-        $distributors = Distributor::active()->get();
-        $products = Product::active()->get();
-        return view('admin.inventory.create', compact('distributors', 'products'));
+        $warehouses = Warehouse::where('is_active', true)->get();
+        $products = Product::where('is_active', true)->get();
+        return view('admin.inventory.create', compact('warehouses', 'products'));
     }
 
-    // Add stock to distributor
+    // Add stock to warehouse
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'distributor_id' => 'required|exists:distributors,id',
+            'warehouse_id' => 'required|exists:warehouses,id',
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|numeric|min:0.01',
             'location' => 'nullable|string|max:255',
@@ -51,7 +51,7 @@ class InventoryController extends Controller
 
         $inventory = Inventory::firstOrCreate(
             [
-                'distributor_id' => $validated['distributor_id'],
+                'warehouse_id' => $validated['warehouse_id'],
                 'product_id' => $validated['product_id'],
             ],
             [
@@ -68,14 +68,14 @@ class InventoryController extends Controller
             auth('admin')->id()
         );
 
-        return redirect()->route('admin.inventory.index', ['distributor_id' => $validated['distributor_id']])
+        return redirect()->route('admin.inventory.index', ['warehouse_id' => $validated['warehouse_id']])
             ->with('success', 'Stock added successfully');
     }
 
     // Show stock movement form (add/remove/adjust)
     public function edit($id)
     {
-        $inventory = Inventory::with(['distributor', 'product'])->findOrFail($id);
+        $inventory = Inventory::with(['warehouse', 'product'])->findOrFail($id);
         return view('admin.inventory.edit', compact('inventory'));
     }
 
@@ -113,21 +113,21 @@ class InventoryController extends Controller
                 break;
         }
 
-        return redirect()->route('admin.inventory.index', ['distributor_id' => $inventory->distributor_id])
+        return redirect()->route('admin.inventory.index', ['warehouse_id' => $inventory->warehouse_id])
             ->with('success', $message);
     }
 
     // Show stock movement history
     public function history(Request $request)
     {
-        $distributorId = $request->get('distributor_id');
+        $warehouseId = $request->get('warehouse_id');
         $productId = $request->get('product_id');
 
-        $query = \App\Models\StockMovement::with(['distributor', 'product', 'creator'])
+        $query = \App\Models\StockMovement::with(['warehouse', 'product', 'creator'])
             ->latest();
 
-        if ($distributorId) {
-            $query->where('distributor_id', $distributorId);
+        if ($warehouseId) {
+            $query->where('warehouse_id', $warehouseId);
         }
 
         if ($productId) {
@@ -135,16 +135,16 @@ class InventoryController extends Controller
         }
 
         $movements = $query->paginate(30);
-        $distributors = Distributor::active()->get();
-        $products = Product::active()->get();
+        $warehouses = Warehouse::where('is_active', true)->get();
+        $products = Product::where('is_active', true)->get();
 
-        return view('admin.inventory.history', compact('movements', 'distributors', 'products'));
+        return view('admin.inventory.history', compact('movements', 'warehouses', 'products'));
     }
 
     // Low stock alerts
     public function lowStock()
     {
-        $lowStockItems = Inventory::with(['distributor', 'product'])
+        $lowStockItems = Inventory::with(['warehouse', 'product'])
             ->get()
             ->filter(fn ($inv) => $inv->isLowStock());
 

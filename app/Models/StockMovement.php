@@ -11,6 +11,7 @@ class StockMovement extends Model
     use HasFactory;
 
     protected $fillable = [
+        'warehouse_id',
         'distributor_id',
         'product_id',
         'type',
@@ -28,6 +29,11 @@ class StockMovement extends Model
         'quantity_before' => 'decimal:2',
         'quantity_after' => 'decimal:2',
     ];
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
 
     public function distributor(): BelongsTo
     {

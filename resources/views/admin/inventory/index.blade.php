@@ -6,43 +6,46 @@
     <div class="page-header">
         <h1>
             <small>Stock Management</small>
-            Inventory
+            Warehouse Inventory
         </h1>
         <div>
             <a href="{{ route('admin.inventory.create') }}" class="btn-primary">➕ Add Stock</a>
         </div>
     </div>
 
-    <!-- Distributor Selector -->
+    <!-- Warehouse Selector -->
     <div class="glass-card" style="margin-bottom: 1.5rem;">
         <div style="padding: 1.25rem;">
             <form method="GET" action="{{ route('admin.inventory.index') }}" style="display: flex; gap: 1rem; align-items: flex-end;">
                 <div class="form-field" style="flex: 1; margin: 0;">
-                    <label class="form-label">Select Distributor</label>
-                    <select name="distributor_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">-- Choose Distributor --</option>
-                        @foreach($distributors as $dist)
-                            <option value="{{ $dist->id }}" {{ $selectedDistributor?->id == $dist->id ? 'selected' : '' }}>
-                                {{ $dist->name }} - {{ $dist->address }}
+                    <label class="form-label">Select Warehouse</label>
+                    <select name="warehouse_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Choose Warehouse --</option>
+                        @foreach($warehouses as $wh)
+                            <option value="{{ $wh->id }}" {{ $selectedWarehouse?->id == $wh->id ? 'selected' : '' }}>
+                                {{ $wh->name }} - {{ $wh->city }}
                             </option>
                         @endforeach
                     </select>
                 </div>
-                @if($selectedDistributor)
+                @if($selectedWarehouse)
                     <a href="{{ route('admin.inventory.index') }}" class="btn-secondary">Clear</a>
                 @endif
             </form>
         </div>
     </div>
 
-    @if($selectedDistributor)
+    @if($selectedWarehouse)
         <div class="filter-bar">
             <div class="date-badge">
-                <span>🏪</span>
-                {{ $selectedDistributor->name }}
+                <span>�</span>
+                {{ $selectedWarehouse->name }}
+                @if($selectedWarehouse->map_url)
+                    <a href="{{ $selectedWarehouse->map_url }}" target="_blank" style="margin-left: 0.5rem; font-size: 0.875rem;">📍 View Map</a>
+                @endif
             </div>
             <div style="flex:1"></div>
-            <a href="{{ route('admin.inventory.history', ['distributor_id' => $selectedDistributor->id]) }}" class="btn-secondary">📜 View History</a>
+            <a href="{{ route('admin.inventory.history', ['warehouse_id' => $selectedWarehouse->id]) }}" class="btn-secondary">📜 View History</a>
         </div>
 
         <div class="glass-card">
@@ -53,7 +56,7 @@
                             <th>Product</th>
                             <th>SKU</th>
                             <th>Current Stock</th>
-                            <th>Location</th>
+                            <th>Warehouse Location</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -76,7 +79,7 @@
                             </td>
                             <td>{{ $inv->product->sku }}</td>
                             <td style="font-weight: 600; font-size: 1rem;">{{ $inv->quantity }}</td>
-                            <td>{{ $inv->location ?? 'Main Warehouse' }}</td>
+                            <td>{{ $inv->location ?? 'Main Storage' }}</td>
                             <td>
                                 @if($inv->isLowStock())
                                     <span class="status-badge status-inactive">⚠️ Low Stock</span>
@@ -94,9 +97,9 @@
                         <tr>
                             <td colspan="6" class="empty-state">
                                 <div class="empty-state-icon">📦</div>
-                                <div>No inventory found for this distributor</div>
+                                <div>No inventory found for this warehouse</div>
                                 <div style="margin-top: 0.5rem;">
-                                    <a href="{{ route('admin.inventory.create', ['distributor_id' => $selectedDistributor->id]) }}" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.75rem;">+ Add inventory</a>
+                                    <a href="{{ route('admin.inventory.create', ['warehouse_id' => $selectedWarehouse->id]) }}" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.75rem;">+ Add inventory</a>
                                 </div>
                             </td>
                         </tr>
@@ -119,8 +122,8 @@
     @else
         <div class="glass-card">
             <div class="empty-state">
-                <div class="empty-state-icon">🏪</div>
-                <div>Select a distributor to view inventory</div>
+                <div class="empty-state-icon">�</div>
+                <div>Select a warehouse to view inventory</div>
             </div>
         </div>
     @endif

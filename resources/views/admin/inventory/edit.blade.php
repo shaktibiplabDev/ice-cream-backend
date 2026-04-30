@@ -6,10 +6,10 @@
     <div class="page-header">
         <h1>
             <small>Stock Management</small>
-            {{ $inventory->product->name }} at {{ $inventory->distributor->name }}
+            {{ $inventory->product->name }} at {{ $inventory->warehouse->name }}
         </h1>
         <div>
-            <a href="{{ route('admin.inventory.index', ['distributor_id' => $inventory->distributor_id]) }}" class="btn-secondary">← Back</a>
+            <a href="{{ route('admin.inventory.index', ['warehouse_id' => $inventory->warehouse_id]) }}" class="btn-secondary">← Back</a>
         </div>
     </div>
 

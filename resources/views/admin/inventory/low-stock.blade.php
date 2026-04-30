@@ -24,8 +24,8 @@
                 <div class="stat-label">Total Units Low</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value">{{ $lowStockItems->unique('product_id')->count() }}</div>
-                <div class="stat-label">Products Affected</div>
+                <div class="stat-value">{{ $lowStockItems->unique('warehouse_id')->count() }}</div>
+                <div class="stat-label">Warehouses Affected</div>
             </div>
         </div>
 
@@ -39,7 +39,7 @@
                     <thead>
                         <tr>
                             <th>Product</th>
-                            <th>Distributor</th>
+                            <th>Warehouse</th>
                             <th>Current Stock</th>
                             <th>Threshold</th>
                             <th>Shortage</th>
@@ -62,7 +62,12 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ $item->distributor->name ?? 'Unknown' }}</td>
+                            <td>
+                                {{ $item->warehouse->name ?? 'Unknown' }}
+                                @if($item->warehouse->map_url)
+                                    <br><a href="{{ $item->warehouse->map_url }}" target="_blank" style="font-size: 0.7rem;">📍 Map</a>
+                                @endif
+                            </td>
                             <td style="font-weight: 600; color: #f87171;">{{ $item->quantity }}</td>
                             <td>{{ $item->product->low_stock_threshold }}</td>
                             <td style="font-weight: 600; color: #ef4444;">{{ $item->product->low_stock_threshold - $item->quantity }}</td>

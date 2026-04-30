@@ -1375,6 +1375,10 @@
                 <span class="nav-icon">📊</span>
                 Inventory
             </a>
+            <a href="{{ route('admin.warehouses.index') }}" class="nav-item {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">
+                <span class="nav-icon">🏭</span>
+                Warehouses
+            </a>
 
             <span class="nav-label" style="margin-top: 1rem;">Operations</span>
             <a href="{{ route('admin.distributors.create') }}" class="nav-item {{ request()->routeIs('admin.distributors.create') ? 'active' : '' }}">
@@ -1384,6 +1388,10 @@
             <a href="{{ route('admin.inventory.create') }}" class="nav-item {{ request()->routeIs('admin.inventory.create') ? 'active' : '' }}">
                 <span class="nav-icon">➕</span>
                 Add Stock
+            </a>
+            <a href="{{ route('admin.warehouses.create') }}" class="nav-item {{ request()->routeIs('admin.warehouses.create') ? 'active' : '' }}">
+                <span class="nav-icon">➕</span>
+                Add Warehouse
             </a>
             <a href="{{ route('admin.inventory.low-stock') }}" class="nav-item {{ request()->routeIs('admin.inventory.low-stock') ? 'active' : '' }}">
                 <span class="nav-icon">⚠️</span>
@@ -1446,6 +1454,7 @@
             <a href="{{ route('admin.distributors.index') }}" class="nav-item {{ request()->routeIs('admin.distributors.*') ? 'active' : '' }}">Distributors</a>
             <a href="{{ route('admin.products.index') }}" class="nav-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Products</a>
             <a href="{{ route('admin.inventory.index') }}" class="nav-item {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}">Inventory</a>
+            <a href="{{ route('admin.warehouses.index') }}" class="nav-item {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">Warehouses</a>
         </nav>
 
         <main class="content">

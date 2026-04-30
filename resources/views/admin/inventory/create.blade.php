@@ -6,7 +6,7 @@
     <div class="page-header">
         <h1>
             <small>Stock Management</small>
-            Add Stock
+            Add Stock to Warehouse
         </h1>
         <div>
             <a href="{{ route('admin.inventory.index') }}" class="btn-secondary">← Back to Inventory</a>
@@ -24,18 +24,18 @@
             <div class="form-grid">
                 <div class="form-field">
                     <label class="form-label">
-                        Distributor
+                        Warehouse
                         <span class="required-label">Required</span>
                     </label>
-                    <select name="distributor_id" class="form-select" required>
-                        <option value="">Select Distributor</option>
-                        @foreach($distributors as $dist)
-                            <option value="{{ $dist->id }}" {{ request('distributor_id') == $dist->id ? 'selected' : '' }}>
-                                {{ $dist->name }} - {{ Str::limit($dist->address, 40) }}
+                    <select name="warehouse_id" class="form-select" required>
+                        <option value="">Select Warehouse</option>
+                        @foreach($warehouses as $wh)
+                            <option value="{{ $wh->id }}" {{ request('warehouse_id') == $wh->id ? 'selected' : '' }}>
+                                {{ $wh->name }} - {{ $wh->city }}
                             </option>
                         @endforeach
                     </select>
-                    @error('distributor_id')<span class="form-error">{{ $message }}</span>@enderror
+                    @error('warehouse_id')<span class="form-error">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="form-field">

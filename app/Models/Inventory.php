@@ -14,6 +14,7 @@ class Inventory extends Model
     protected $table = 'inventory';
 
     protected $fillable = [
+        'warehouse_id',
         'distributor_id',
         'product_id',
         'quantity',
@@ -27,6 +28,11 @@ class Inventory extends Model
         'reserved_quantity' => 'decimal:2',
         'last_stock_check' => 'datetime',
     ];
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
 
     public function distributor(): BelongsTo
     {
@@ -63,6 +69,7 @@ class Inventory extends Model
         $this->save();
 
         return $this->stockMovements()->create([
+            'warehouse_id' => $this->warehouse_id,
             'distributor_id' => $this->distributor_id,
             'product_id' => $this->product_id,
             'type' => 'in',
@@ -88,6 +95,7 @@ class Inventory extends Model
         $this->save();
 
         return $this->stockMovements()->create([
+            'warehouse_id' => $this->warehouse_id,
             'distributor_id' => $this->distributor_id,
             'product_id' => $this->product_id,
             'type' => 'out',
@@ -109,6 +117,7 @@ class Inventory extends Model
         $this->save();
 
         return $this->stockMovements()->create([
+            'warehouse_id' => $this->warehouse_id,
             'distributor_id' => $this->distributor_id,
             'product_id' => $this->product_id,
             'type' => 'adjustment',

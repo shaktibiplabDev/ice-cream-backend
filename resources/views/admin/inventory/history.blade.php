@@ -18,12 +18,12 @@
         <div style="padding: 1.25rem;">
             <form method="GET" action="{{ route('admin.inventory.history') }}" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                 <div class="form-field" style="flex: 1; min-width: 200px; margin: 0;">
-                    <label class="form-label">Distributor</label>
-                    <select name="distributor_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Distributors</option>
-                        @foreach($distributors as $dist)
-                            <option value="{{ $dist->id }}" {{ request('distributor_id') == $dist->id ? 'selected' : '' }}>
-                                {{ $dist->name }}
+                    <label class="form-label">Warehouse</label>
+                    <select name="warehouse_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Warehouses</option>
+                        @foreach($warehouses as $wh)
+                            <option value="{{ $wh->id }}" {{ request('warehouse_id') == $wh->id ? 'selected' : '' }}>
+                                {{ $wh->name }}
                             </option>
                         @endforeach
                     </select>
@@ -52,7 +52,7 @@
                 <thead>
                     <tr>
                         <th>Date & Time</th>
-                        <th>Distributor</th>
+                        <th>Warehouse</th>
                         <th>Product</th>
                         <th>Type</th>
                         <th>Quantity</th>
@@ -65,7 +65,7 @@
                     @forelse($movements as $movement)
                     <tr>
                         <td>{{ $movement->created_at->format('M d, Y') }}<br><small style="color: var(--text-muted);">{{ $movement->created_at->format('H:i') }}</small></td>
-                        <td>{{ $movement->distributor->name ?? 'N/A' }}</td>
+                        <td>{{ $movement->warehouse->name ?? 'N/A' }}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
                                 @if($movement->product->image)

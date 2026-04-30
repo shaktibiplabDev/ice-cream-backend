@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\DistributorController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\InventoryController;
+use App\Http\Controllers\Admin\WarehouseController;
 
 // Admin Authentication Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -51,6 +52,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/inventory/{id}', [InventoryController::class, 'update'])->name('inventory.update');
         Route::get('/inventory-history', [InventoryController::class, 'history'])->name('inventory.history');
         Route::get('/low-stock', [InventoryController::class, 'lowStock'])->name('inventory.low-stock');
+
+        // Warehouse Management
+        Route::get('/warehouses', [WarehouseController::class, 'index'])->name('warehouses.index');
+        Route::get('/warehouses/create', [WarehouseController::class, 'create'])->name('warehouses.create');
+        Route::post('/warehouses', [WarehouseController::class, 'store'])->name('warehouses.store');
+        Route::get('/warehouses/{warehouse}', [WarehouseController::class, 'show'])->name('warehouses.show');
+        Route::get('/warehouses/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('warehouses.edit');
+        Route::put('/warehouses/{warehouse}', [WarehouseController::class, 'update'])->name('warehouses.update');
+        Route::delete('/warehouses/{warehouse}', [WarehouseController::class, 'destroy'])->name('warehouses.destroy');
     });
 });
 
