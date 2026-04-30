@@ -7,7 +7,8 @@
         ->take(2)
         ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
         ->implode('') ?: 'AD';
-    $navNewInquiries = \App\Models\Inquiry::where('status', 'new')->count();
+    $navNewInquiries = \App\Models\LeadInquiry::where('status', 'new')->count();
+    $companySettings = \App\Models\CompanySetting::getSettings();
     $hour = (int) now()->format('G');
     $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
 @endphp
@@ -1497,8 +1498,12 @@
     <aside class="sidebar">
         <div class="logo">
             <a href="{{ route('admin.dashboard') }}">
-                <div class="logo-icon">✨</div>
-                <span class="logo-text">Celesty</span>
+                @if($companySettings->logo_path)
+                    <img src="{{ Storage::url($companySettings->logo_path) }}" alt="{{ $companySettings->company_name }}" style="max-height: 40px; max-width: 150px;">
+                @else
+                    <div class="logo-icon">✨</div>
+                    <span class="logo-text">{{ $companySettings->company_name ?? 'Celesty' }}</span>
+                @endif
             </a>
         </div>
 

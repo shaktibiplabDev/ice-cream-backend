@@ -1,9 +1,12 @@
+@php
+    $settings = \App\Models\CompanySetting::getSettings();
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Celesty Admin | Secure Access</title>
+    <title>{{ $settings->company_name ?? 'Admin' }} | Secure Access</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -478,10 +481,14 @@
         <!-- Left Brand Panel -->
         <div class="brand-panel">
             <div class="logo-area">
-                <div class="logo-icon">
-                    <span>✨</span>
-                </div>
-                <span class="logo-text">Celesty</span>
+                @if($settings->logo_path)
+                    <img src="{{ Storage::url($settings->logo_path) }}" alt="{{ $settings->company_name }}" style="max-height: 40px; max-width: 150px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
+                @else
+                    <div class="logo-icon">
+                        <span>✨</span>
+                    </div>
+                    <span class="logo-text">{{ $settings->company_name ?? 'Admin' }}</span>
+                @endif
             </div>
             
             <div class="brand-quote">
