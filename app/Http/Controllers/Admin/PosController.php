@@ -81,8 +81,12 @@ class PosController extends Controller
             'product' => [
                 'id' => $product->id,
                 'name' => $product->name,
-                'price' => $product->price,
+                'mrp_price' => $product->mrp_price,
+                'distributor_price' => $product->distributor_price,
+                'retailer_price' => $product->retailer_price,
+                'price' => $product->distributor_price, // For backward compatibility, use distributor price
                 'unit' => $product->unit,
+                'image' => $product->getImageUrl(),
             ],
         ]);
     }

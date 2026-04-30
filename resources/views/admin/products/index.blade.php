@@ -60,8 +60,14 @@
                             </div>
                         </td>
                         <td>{{ $product->sku }}</td>
-                        <td>{{ $product->category }}</td>
-                        <td>{{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->price, 2) }} / {{ $product->unit }}</td>
+                        <td>{{ $product->category?->name ?? '-' }}</td>
+                        <td>
+                            <div style="font-size: 0.75rem;">
+                                <div>MRP: {{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->mrp_price, 2) }}</div>
+                                <div>Dist: {{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->distributor_price, 2) }}</div>
+                                <div>Ret: {{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->retailer_price, 2) }}</div>
+                            </div>
+                        </td>
                         <td>
                             <span class="status-badge {{ $product->is_active ? 'status-active' : 'status-inactive' }}">
                                 {{ $product->is_active ? 'Active' : 'Inactive' }}

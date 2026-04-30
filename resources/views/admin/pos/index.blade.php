@@ -129,11 +129,17 @@
                 <div style="flex: 1; overflow-y: auto; padding: 1rem;">
                     <div id="products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem;">
                         @foreach($products as $product)
-                            <div class="product-card" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}" data-unit="{{ $product->unit }}" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: all 0.2s;">
-                                <div style="font-size: 2rem; margin-bottom: 0.5rem; text-align: center;">📦</div>
+                            <div class="product-card" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->distributor_price }}" data-unit="{{ $product->unit }}" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: all 0.2s;">
+                                @if($product->image)
+                                    <div style="width: 100%; height: 80px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                                        <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" style="max-width: 100%; max-height: 80px; object-fit: contain; border-radius: var(--radius-sm);">
+                                    </div>
+                                @else
+                                    <div style="font-size: 2rem; margin-bottom: 0.5rem; text-align: center;">📦</div>
+                                @endif
                                 <div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $product->name }}</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">{{ $product->unit }}</div>
-                                <div style="font-size: 0.9375rem; font-weight: 600; color: #34d399;">{{ $companySettings->currency_symbol }}{{ number_format($product->price, 2) }}</div>
+                                <div style="font-size: 0.9375rem; font-weight: 600; color: #34d399;">{{ $companySettings->currency_symbol }}{{ number_format($product->distributor_price, 2) }}</div>
                                 <div class="stock-status" data-product-id="{{ $product->id }}" style="font-size: 0.6875rem; margin-top: 0.5rem; color: var(--text-muted);">
                                     Select warehouse to check stock
                                 </div>

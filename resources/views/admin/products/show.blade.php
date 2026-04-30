@@ -32,9 +32,20 @@
                     @endif
                     <div style="flex: 1;">
                         <div style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">{{ $product->name }}</div>
-                        <div style="color: var(--text-muted); margin-bottom: 1rem;">{{ $product->category }} | {{ $product->size }}</div>
-                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-primary-light);">
-                            {{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->price, 2) }} <small style="font-size: 0.75rem; color: var(--text-muted);">/ {{ $product->unit }}</small>
+                        <div style="color: var(--text-muted); margin-bottom: 1rem;">{{ $product->category?->name ?? '-' }} | {{ $product->size }}</div>
+                        <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                            <div style="font-size: 1rem; font-weight: 600;">
+                                <small style="font-size: 0.75rem; color: var(--text-muted); display: block;">MRP (Customer)</small>
+                                {{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->mrp_price, 2) }}
+                            </div>
+                            <div style="font-size: 1rem; font-weight: 600;">
+                                <small style="font-size: 0.75rem; color: var(--text-muted); display: block;">Distributor</small>
+                                {{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->distributor_price, 2) }}
+                            </div>
+                            <div style="font-size: 1rem; font-weight: 600;">
+                                <small style="font-size: 0.75rem; color: var(--text-muted); display: block;">Retailer</small>
+                                {{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->retailer_price, 2) }}
+                            </div>
                         </div>
                     </div>
                 </div>
