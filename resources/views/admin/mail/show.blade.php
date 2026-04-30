@@ -177,32 +177,6 @@
                     </div>
                 @endif
 
-                {{-- Conversation thread --}}
-                @if(isset($conversation) && $conversation->count() > 0)
-                    <div class="conversation-section">
-                        <div class="section-header">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
-                            Conversation ({{ $conversation->count() }})
-                        </div>
-                        <div class="conversation-list">
-                            @foreach($conversation as $threadEmail)
-                                <a href="{{ route('admin.mail.show', $threadEmail) }}" class="conversation-item {{ $threadEmail->id === $email->id ? 'current' : '' }}">
-                                    <div class="conv-avatar">{{ strtoupper(substr($threadEmail->from_name, 0, 1)) }}</div>
-                                    <div class="conv-content">
-                                        <div class="conv-header-row">
-                                            <span class="conv-from">{{ $threadEmail->from_name }}</span>
-                                            <span class="conv-date">{{ $threadEmail->sent_at?->format('M j') }}</span>
-                                        </div>
-                                        <div class="conv-subject">{{ $threadEmail->subject ?: '(No Subject)' }}</div>
-                                        <div class="conv-preview">{{ $threadEmail->getExcerpt(60) }}</div>
-                                    </div>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
 
             </div>{{-- /reading-scroll --}}
         </main>
