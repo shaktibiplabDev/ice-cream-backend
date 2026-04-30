@@ -1589,11 +1589,6 @@
                 <span class="nav-icon">⚙️</span>
                 Company Settings
             </a>
-            <a href="#" class="nav-item" onclick="toggleTheme(event)">
-                <span class="nav-icon" id="theme-icon">🌙</span>
-                <span id="theme-text">Dark Mode</span>
-            </a>
-
             <span class="nav-label" style="margin-top: 1rem;">External</span>
             <a href="{{ url('/') }}" class="nav-item" target="_blank">
                 <span class="nav-icon">🏠</span>
@@ -1624,6 +1619,12 @@
             </form>
 
             <div class="topbar-right">
+                <a class="icon-btn" href="{{ route('admin.pos.index') }}" title="Point of Sale">
+                    🛒
+                </a>
+                <button class="icon-btn" onclick="toggleTheme(event)" title="Toggle Theme" id="theme-toggle-btn">
+                    🌙
+                </button>
                 <a class="icon-btn" href="{{ route('admin.inquiries.index') }}">
                     📩
                     @if($navNewInquiries > 0)
@@ -1685,13 +1686,16 @@
         function updateThemeUI(theme) {
             const icon = document.getElementById('theme-icon');
             const text = document.getElementById('theme-text');
+            const topBtn = document.getElementById('theme-toggle-btn');
 
             if (theme === 'light') {
-                icon.textContent = '☀️';
-                text.textContent = 'Light Mode';
+                if (icon) icon.textContent = '☀️';
+                if (text) text.textContent = 'Light Mode';
+                if (topBtn) topBtn.textContent = '☀️';
             } else {
-                icon.textContent = '🌙';
-                text.textContent = 'Dark Mode';
+                if (icon) icon.textContent = '🌙';
+                if (text) text.textContent = 'Dark Mode';
+                if (topBtn) topBtn.textContent = '🌙';
             }
         }
 
