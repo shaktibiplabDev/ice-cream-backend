@@ -39,6 +39,25 @@ class CompanySetting extends Model
         'bank_ifsc_code',
         'bank_branch',
         'terms_and_conditions',
+        // Email settings
+        'email_fetching_enabled',
+        'imap_host',
+        'imap_port',
+        'imap_username',
+        'imap_password',
+        'imap_encryption',
+        'imap_folder',
+        'mail_mailer',
+        'mail_host',
+        'mail_port',
+        'mail_username',
+        'mail_password',
+        'mail_encryption',
+        'mail_from_address',
+        'mail_from_name',
+        'last_email_fetch_at',
+        // Cron settings
+        'cron_token',
     ];
 
     protected $casts = [
@@ -46,6 +65,10 @@ class CompanySetting extends Model
         'cgst_percentage' => 'decimal:2',
         'sgst_percentage' => 'decimal:2',
         'igst_percentage' => 'decimal:2',
+        'email_fetching_enabled' => 'boolean',
+        'last_email_fetch_at' => 'datetime',
+        'imap_port' => 'integer',
+        'mail_port' => 'integer',
     ];
 
     /**

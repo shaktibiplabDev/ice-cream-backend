@@ -20,7 +20,9 @@ class CronController extends Controller
 
         // Generate cron URL token if not exists
         if (!$settings->cron_token) {
-            $settings->update(['cron_token' => bin2hex(random_bytes(16))]);
+            $token = bin2hex(random_bytes(16));
+            $settings->update(['cron_token' => $token]);
+            $settings->refresh(); // Refresh to get the updated token
         }
 
         $cronUrl = route('cron.run', ['token' => $settings->cron_token]);
