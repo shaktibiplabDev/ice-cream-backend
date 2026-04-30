@@ -13,6 +13,7 @@
     <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" class="settings-form">
         @csrf
         @method('PUT')
+        <input type="hidden" name="redirect_to" value="admin.settings.company">
 
         <div class="settings-single">
             <div class="glass-card">
