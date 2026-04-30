@@ -47,7 +47,7 @@
                         @foreach($emails as $email)
                             <div class="email-row {{ !$email->is_read ? 'unread' : '' }}">
                                 <div class="row-actions">
-                                    <button class="star-btn" onclick="toggleStar('{{ $email->id }}', this)" data-id="{{ $email->id }}">
+                                    <button class="star-btn" onclick="event.stopPropagation(); toggleStar(this, '{{ $email->id }}')" data-id="{{ $email->id }}" type="button">
                                         {{ $email->is_starred ? '⭐' : '☆' }}
                                     </button>
                                 </div>
@@ -196,14 +196,21 @@
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
+            min-height: 200px;
         }
 
         .email-row {
             display: flex;
-            align-items: stretch;
+            align-items: center;
+            min-height: 56px;
             border-bottom: 1px solid var(--border-subtle);
             transition: all 0.15s;
             cursor: pointer;
+            background: transparent;
+        }
+
+        .email-row:nth-child(even) {
+            background: rgba(255, 255, 255, 0.01);
         }
 
         .email-row:hover {
@@ -356,10 +363,7 @@
     </style>
 
     <script>
-        function toggleStar(emailId, btn) {
-            event.preventDefault();
-            event.stopPropagation();
-            
+        function toggleStar(btn, emailId) {
             fetch(`/admin/mail/${emailId}/star`, {
                 method: 'POST',
                 headers: {
