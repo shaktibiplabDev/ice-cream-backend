@@ -66,7 +66,28 @@ class MailController extends Controller
             $email->markAsRead();
         }
 
-        return view('admin.mail.show', compact('email'));
+        $settings = CompanySetting::getSettings();
+        
+        // Get conversation thread
+        $conversation = collect([]);
+        if ($email->in_reply_to) {
+            $conversation = Email::where('created_by', auth('admin')->id())
+                ->where(function ($query) use ($email) {
+                    $query->where('in_reply_to', $email->in_reply_to)
+                          ->orWhere('message_id', $email->in_reply_to)
+                          ->orWhere('id', $email->in_reply_to);
+                })
+                ->orWhere('id', $email->id)
+                ->orderBy('sent_at', 'asc')
+                ->get();
+        }
+
+        // Check if linked to inquiry
+        $linkedInquiry = \App\Models\Inquiry::where('email', $email->from_email)
+            ->orWhere('email', $email->to_email)
+            ->first();
+
+        return view('admin.mail.show', compact('email', 'settings', 'conversation', 'linkedInquiry'));
     }
 
     public function store(Request $request)
@@ -201,5 +222,103 @@ class MailController extends Controller
     private function parseEmails(string $emails): array
     {
         return array_map('trim', explode(',', $emails));
+    }
+
+    /**
+     * Show reply form for an email
+     */
+    public function reply(Email $email)
+    {
+        if ($email->created_by !== auth('admin')->id()) {
+            abort(403);
+        }
+
+        $settings = CompanySetting::getSettings();
+        
+        // Check if this email is linked to an inquiry
+        $linkedInquiry = \App\Models\Inquiry::where('email', $email->from_email)->first();
+
+        return view('admin.mail.reply', compact('email', 'settings', 'linkedInquiry'));
+    }
+
+    /**
+     * Send reply to an email
+     */
+    public function sendReply(Request $request, Email $email)
+    {
+        if ($email->created_by !== auth('admin')->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'subject' => 'required|string|max:255',
+            'body' => 'required|string',
+            'attachments.*' => 'nullable|file|max:10240',
+        ]);
+
+        $settings = CompanySetting::getSettings();
+
+        // Handle attachments
+        $attachments = [];
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('email-attachments', 'public');
+                $attachments[] = [
+                    'path' => $path,
+                    'name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                ];
+            }
+        }
+
+        // Create sent email record
+        $replyEmail = Email::create([
+            'created_by' => auth('admin')->id(),
+            'type' => 'sent',
+            'from_name' => $settings->company_name,
+            'from_email' => $settings->email,
+            'to_email' => $email->from_email,
+            'to_name' => $email->from_name,
+            'subject' => $validated['subject'],
+            'body' => $validated['body'],
+            'body_html' => nl2br(e($validated['body'])),
+            'sent_at' => now(),
+            'attachments' => $attachments,
+            'in_reply_to' => $email->message_id ?? $email->id,
+        ]);
+
+        // Link to inquiry if exists
+        $inquiry = \App\Models\Inquiry::where('email', $email->from_email)->first();
+        if ($inquiry) {
+            \App\Models\InquiryMessage::create([
+                'inquiry_id' => $inquiry->id,
+                'direction' => 'outgoing',
+                'sender_name' => $settings->company_name,
+                'sender_email' => $settings->email,
+                'content' => $validated['body'],
+                'sent_at' => now(),
+            ]);
+        }
+
+        // Actually send the email
+        try {
+            Mail::raw($validated['body'], function($message) use ($email, $settings, $validated, $attachments) {
+                $message->from($settings->email, $settings->company_name)
+                    ->to($email->from_email, $email->from_name)
+                    ->subject($validated['subject']);
+
+                foreach ($attachments as $attachment) {
+                    $message->attach(storage_path('app/public/' . $attachment['path']), [
+                        'as' => $attachment['name'],
+                    ]);
+                }
+            });
+
+            return redirect()->route('admin.mail.sent')
+                ->with('success', 'Reply sent successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to send reply: ' . $e->getMessage());
+        }
     }
 }

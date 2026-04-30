@@ -111,6 +111,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/mail/{email}', [MailController::class, 'destroy'])->name('mail.destroy');
         Route::post('/mail/{email}/star', [MailController::class, 'toggleStar'])->name('mail.star');
         Route::post('/mail/{email}/important', [MailController::class, 'toggleImportant'])->name('mail.important');
+        Route::get('/mail/{email}/reply', [MailController::class, 'reply'])->name('mail.reply');
+        Route::post('/mail/{email}/reply', [MailController::class, 'sendReply'])->name('mail.reply.send');
 
         // Cron Jobs
         Route::get('/cron', [CronController::class, 'index'])->name('cron.index');

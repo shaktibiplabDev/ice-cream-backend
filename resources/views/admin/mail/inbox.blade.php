@@ -36,16 +36,16 @@
             @if($emails->count() > 0)
                 <div class="email-list">
                     @foreach($emails as $email)
-                        <a href="{{ route('admin.mail.show', $email) }}" class="email-item {{ !$email->is_read ? 'unread' : '' }}">
-                            <div class="email-star" onclick="event.preventDefault(); toggleStar({{ $email->id }})" data-id="{{ $email->id }}">
+                        <a href="{{ route('admin.mail.show', $email) }}" class="email-item {{ !$email->is_read ? 'unread' : '' }}" style="text-decoration: none;">
+                            <div class="email-star" onclick="event.preventDefault(); toggleStar(&quot;{{ $email->id }}&quot;, this)" data-id="{{ $email->id }}">
                                 {{ $email->is_starred ? '⭐' : '☆' }}
                             </div>
                             <div class="email-sender">{{ $email->from_name }}</div>
                             <div class="email-subject">
-                                {{ $email->subject }}
+                                {{ $email->subject ?: '(No Subject)' }}
                                 <span class="email-excerpt"> - {{ $email->getExcerpt(50) }}</span>
                             </div>
-                            <div class="email-date">{{ $email->sent_at->format('M d') }}</div>
+                            <div class="email-date">{{ $email->sent_at?->format('M d') ?? 'Draft' }}</div>
                         </a>
                     @endforeach
                 </div>
