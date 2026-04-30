@@ -107,17 +107,17 @@
         box-shadow: 0 0 8px currentColor;
     }
 
-    /* Leaflet Popup Styling */
+    /* Leaflet Popup Styling - High Contrast */
     .leaflet-popup-content-wrapper {
         background: #1a1d24;
         border-radius: 12px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        border: 1px solid var(--border-subtle);
+        border: 1px solid rgba(255,255,255,0.1);
     }
 
     .leaflet-popup-tip {
         background: #1a1d24;
-        border: 1px solid var(--border-subtle);
+        border: 1px solid rgba(255,255,255,0.1);
     }
 
     .leaflet-popup-content {
@@ -129,6 +129,7 @@
         padding: 1rem;
         min-width: 200px;
         max-width: 280px;
+        color: #ffffff;
     }
 
     .popup-header {
@@ -163,12 +164,12 @@
         font-size: 1rem;
         font-weight: 600;
         margin: 0;
-        color: var(--text-primary);
+        color: #ffffff;
     }
 
     .popup-title span {
         font-size: 0.75rem;
-        color: var(--text-muted);
+        color: #9ca3af;
     }
 
     .popup-body {
@@ -184,11 +185,11 @@
     }
 
     .popup-row .label {
-        color: var(--text-muted);
+        color: #9ca3af;
     }
 
     .popup-row .value {
-        color: var(--text-primary);
+        color: #ffffff;
         font-weight: 500;
     }
 
@@ -228,16 +229,17 @@
         flex: 1;
         text-align: center;
         padding: 0.5rem;
-        background: rgba(255,255,255,0.05);
+        background: rgba(255,255,255,0.1);
         border-radius: 6px;
         font-size: 0.75rem;
-        color: var(--text-secondary);
+        color: #ffffff;
         text-decoration: none;
         transition: all 0.2s;
     }
 
     .popup-actions a:hover {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.2);
+        color: #ffffff;
     }
 
     /* Territory polygon styles */
@@ -344,7 +346,7 @@
                     <div class="popup-row">
                         <span class="label">📍 Address</span>
                     </div>
-                    <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <div style="font-size: 0.8125rem; color: #9ca3af; margin-bottom: 0.5rem;">
                         ${escapeHtml(warehouse.address || 'N/A')}, ${escapeHtml(warehouse.city || 'N/A')}
                     </div>
                     ${warehouse.manager_name ? `
@@ -418,7 +420,7 @@
                     <div class="popup-row">
                         <span class="label">📍 Address</span>
                     </div>
-                    <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <div style="font-size: 0.8125rem; color: #9ca3af; margin-bottom: 0.5rem;">
                         ${escapeHtml(distributor.address || 'Address not available')}
                     </div>
                     ${distributor.phone ? `
