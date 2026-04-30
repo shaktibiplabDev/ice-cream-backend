@@ -3,63 +3,109 @@
 @section('title', 'Distributors')
 
 @section('content')
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b flex justify-between items-center">
-            <h3 class="text-lg font-semibold">Distributors</h3>
-            <a href="{{ route('admin.distributors.create') }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-                + Add New Distributor
-            </a>
+    <div class="page-header">
+        <h1>
+            <small>Distribution Network</small>
+            All Distributors
+        </h1>
+        <div>
+            <a href="{{ route('admin.distributors.create') }}" class="btn-primary">➕ Add New Distributor</a>
         </div>
-        
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <select class="filter-select" onchange="window.location.href=this.value">
+                <option value="{{ route('admin.distributors.index') }}" {{ !request('status') ? 'selected' : '' }}>All Status</option>
+                <option value="{{ route('admin.distributors.index', ['status' => 'active']) }}" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                <option value="{{ route('admin.distributors.index', ['status' => 'inactive']) }}" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+            </select>
+        </div>
+        <div style="flex:1"></div>
+        <div class="date-badge">
+            <span>📍</span>
+            Total: {{ $distributors->total() }}
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="glass-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone/Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service Area</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        <th>ID</th>
+                        <th>Name / Address</th>
+                        <th>Contact Person</th>
+                        <th>Phone / Email</th>
+                        <th>Service Area</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @foreach($distributors as $distributor)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">{{ $distributor->id }}</td>
-                        <td class="px-6 py-4">
-                            <div class="font-medium text-gray-900">{{ $distributor->name }}</div>
-                            <div class="text-xs text-gray-500">{{ $distributor->address }}</div>
+                <tbody>
+                    @forelse($distributors as $distributor)
+                    <tr>
+                        <td class="order-id">#{{ $distributor->id }}</td>
+                        <td>
+                            <div style="font-weight: 500;">{{ $distributor->name }}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">{{ Str::limit($distributor->address, 50) }}</div>
                         </td>
-                        <td class="px-6 py-4">{{ $distributor->contact_person ?? 'N/A' }}</td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm">{{ $distributor->phone ?? 'N/A' }}</div>
-                            <div class="text-xs text-gray-500">{{ $distributor->email ?? 'N/A' }}</div>
+                        <td>{{ $distributor->contact_person ?? 'N/A' }}</td>
+                        <td>
+                            <div>{{ $distributor->phone ?? 'N/A' }}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">{{ $distributor->email ?? 'N/A' }}</div>
                         </td>
-                        <td class="px-6 py-4 text-sm">{{ $distributor->service_area ?? 'N/A' }}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full {{ $distributor->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                        <td>{{ $distributor->service_area ?? 'N/A' }}</td>
+                        <td>
+                            <span class="status-badge {{ $distributor->is_active ? 'status-active' : 'status-inactive' }}">
                                 {{ $distributor->is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4">
-                            <a href="{{ route('admin.distributors.show', $distributor->id) }}" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
-                            <a href="{{ route('admin.distributors.edit', $distributor->id) }}" class="text-purple-600 hover:text-purple-900 mr-3">Edit</a>
-                            <form action="{{ route('admin.distributors.destroy', $distributor->id) }}" method="POST" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Delete this distributor?')">Delete</button>
-                            </form>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ route('admin.distributors.show', $distributor->id) }}" class="action-btn action-view">👁️ View</a>
+                                <a href="{{ route('admin.distributors.edit', $distributor->id) }}" class="action-btn action-edit">✏️ Edit</a>
+                                <form action="{{ route('admin.distributors.destroy', $distributor->id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this distributor?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="action-btn action-delete" style="background:none; border:none; cursor:pointer;">🗑️ Delete</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-state-icon">🏪</div>
+                            <div>No distributors found</div>
+                            <div style="margin-top: 0.5rem;">
+                                <a href="{{ route('admin.distributors.create') }}" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.75rem;">+ Add your first distributor</a>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
         
-        <div class="px-6 py-4">
-            {{ $distributors->links() }}
+        <!-- Pagination -->
+        @if($distributors->hasPages())
+        <div class="pagination">
+            <div class="pagination-info">
+                Showing {{ $distributors->firstItem() ?? 0 }} to {{ $distributors->lastItem() ?? 0 }} of {{ $distributors->total() }} distributors
+            </div>
+            <div class="pagination-links">
+                {{ $distributors->onEachSide(1)->links('pagination::simple-tailwind') }}
+            </div>
         </div>
+        @endif
     </div>
 @endsection
+
+@push('styles')
+<style>
+    .inline { display: inline; }
+</style>
+@endpush

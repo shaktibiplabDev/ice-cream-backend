@@ -1,0 +1,40 @@
+<svg width="900" height="560" viewBox="0 0 900 560" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Celesty Ice Cream</title>
+  <desc id="desc">Red Celesty Ice Cream badge logo with cream border and sprinkle shapes.</desc>
+  <defs>
+    <linearGradient id="badge" x1="450" y1="35" x2="450" y2="525" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e30000"/>
+      <stop offset="0.46" stop-color="#c90000"/>
+      <stop offset="1" stop-color="#a90000"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="114%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="15" stdDeviation="13" flood-color="#5b0000" flood-opacity="0.42"/>
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#ffffff" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="42" y="44" width="816" height="472" rx="64" fill="url(#badge)"/>
+    <rect x="59" y="61" width="782" height="438" rx="50" stroke="#7d0000" stroke-width="18"/>
+    <rect x="78" y="80" width="744" height="400" rx="36" stroke="#fff7df" stroke-width="14"/>
+
+    <path d="M92 98L126 98L111 170L92 170L111 98Z" fill="#130035"/>
+    <path d="M205 96L238 96L254 170L185 170L205 96Z" fill="#ffe75e"/>
+    <path d="M316 98L349 98L334 170L315 170L334 98Z" fill="#130035"/>
+    <path d="M429 96L462 96L478 170L409 170L429 96Z" fill="#ffe75e"/>
+    <path d="M542 98L575 98L560 170L541 170L560 98Z" fill="#130035"/>
+    <path d="M655 96L688 96L704 170L635 170L655 96Z" fill="#ffe75e"/>
+    <path d="M766 98L799 98L784 170L765 170L784 98Z" fill="#130035"/>
+
+    <path d="M94 462L127 462L112 390L93 390L112 462Z" fill="#130035"/>
+    <path d="M207 464L240 464L256 390L187 390L207 464Z" fill="#ffe75e"/>
+    <path d="M318 462L351 462L336 390L317 390L336 462Z" fill="#130035"/>
+    <path d="M431 464L464 464L480 390L411 390L431 464Z" fill="#ffe75e"/>
+    <path d="M544 462L577 462L562 390L543 390L562 462Z" fill="#130035"/>
+    <path d="M657 464L690 464L706 390L637 390L657 464Z" fill="#ffe75e"/>
+    <path d="M768 462L801 462L786 390L767 390L786 462Z" fill="#130035"/>
+
+    <text x="449" y="330" text-anchor="middle" fill="white" font-family="Arial Black, Arial, sans-serif" font-size="128" font-weight="900" font-style="italic" letter-spacing="-8">Celesty</text>
+    <text x="450" y="402" text-anchor="middle" fill="white" font-family="Arial Black, Arial, sans-serif" font-size="46" font-weight="900" letter-spacing="25">ICE CREAM</text>
+  </g>
+</svg>

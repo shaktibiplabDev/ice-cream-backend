@@ -3,56 +3,143 @@
 @section('title', 'Inquiries')
 
 @section('content')
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b">
-            <h3 class="text-lg font-semibold">All Inquiries</h3>
+    <div class="page-header">
+        <h1>
+            <small>Customer Inquiries</small>
+            All Inquiries
+        </h1>
+        <div class="date-badge">
+            <span>📋</span>
+            Total: {{ $inquiries->total() }}
         </div>
-        
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <select class="filter-select" onchange="window.location.href=this.value">
+                <option value="{{ route('admin.inquiries.index') }}" {{ !request('status') ? 'selected' : '' }}>All Status</option>
+                <option value="{{ route('admin.inquiries.index', ['status' => 'new']) }}" {{ request('status') == 'new' ? 'selected' : '' }}>New</option>
+                <option value="{{ route('admin.inquiries.index', ['status' => 'read']) }}" {{ request('status') == 'read' ? 'selected' : '' }}>Read</option>
+                <option value="{{ route('admin.inquiries.index', ['status' => 'replied']) }}" {{ request('status') == 'replied' ? 'selected' : '' }}>Replied</option>
+            </select>
+        </div>
+        <div style="flex:1"></div>
+        <a href="{{ route('admin.dashboard') }}" class="chip">📊 Dashboard</a>
+    </div>
+
+    <!-- Table -->
+    <div class="glass-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Business</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        <th>Inquiry No.</th>
+                        <th>Name</th>
+                        <th>Business</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @foreach($inquiries as $inquiry)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">{{ $inquiry->id }}</td>
-                        <td class="px-6 py-4">{{ $inquiry->name }}</td>
-                        <td class="px-6 py-4">{{ $inquiry->business_name ?? 'N/A' }}</td>
-                        <td class="px-6 py-4">{{ $inquiry->email }}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full 
-                                {{ $inquiry->status == 'new' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                                {{ $inquiry->status == 'read' ? 'bg-blue-100 text-blue-800' : '' }}
-                                {{ $inquiry->status == 'replied' ? 'bg-green-100 text-green-800' : '' }}">
-                                {{ ucfirst($inquiry->status) }}
-                            </span>
+                <tbody>
+                    @forelse($inquiries as $inquiry)
+                    <tr>
+                        <td class="order-id">{{ $inquiry->displayNumber() }}</td>
+                        <td>{{ $inquiry->name }}</td>
+                        <td>{{ $inquiry->business_name ?? 'N/A' }}</td>
+                        <td>{{ $inquiry->email }}</td>
+                        <td>
+                            @php
+                                $statusClass = match($inquiry->status) {
+                                    'new' => 'status-new',
+                                    'read' => 'status-in-progress',
+                                    'replied' => 'status-resolved',
+                                    default => 'status-new'
+                                };
+                                $statusText = ucfirst($inquiry->status);
+                            @endphp
+                            <span class="status-badge {{ $statusClass }}">{{ $statusText }}</span>
                         </td>
-                        <td class="px-6 py-4">{{ $inquiry->created_at->format('M d, Y H:i') }}</td>
-                        <td class="px-6 py-4">
-                            <a href="{{ route('admin.inquiries.show', $inquiry->id) }}" class="text-purple-600 hover:text-purple-900 mr-3">View</a>
-                            <form action="{{ route('admin.inquiries.destroy', $inquiry->id) }}" method="POST" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Delete this inquiry?')">Delete</button>
-                            </form>
+                        <td>{{ $inquiry->created_at->format('M d, Y H:i') }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ route('admin.inquiries.show', $inquiry->id) }}" class="action-btn action-view">👁️ View</a>
+                                <form action="{{ route('admin.inquiries.destroy', $inquiry->id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this inquiry?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="action-btn action-delete" style="background:none; border:none; cursor:pointer;">🗑️ Delete</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <div>No inquiries found</div>
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
         
-        <div class="px-6 py-4">
-            {{ $inquiries->links() }}
+        <!-- Pagination -->
+        @if($inquiries->hasPages())
+        <div class="pagination">
+            <div class="pagination-info">
+                Showing {{ $inquiries->firstItem() ?? 0 }} to {{ $inquiries->lastItem() ?? 0 }} of {{ $inquiries->total() }} results
+            </div>
+            <div class="pagination-links">
+                {{ $inquiries->onEachSide(1)->links('pagination::simple-tailwind') }}
+            </div>
         </div>
+        @endif
     </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Custom pagination styling to match dark theme */
+    .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border-subtle);
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .pagination-info {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+    .pagination-links {
+        display: flex;
+        gap: 0.25rem;
+    }
+    .pagination-links a,
+    .pagination-links span {
+        padding: 0.375rem 0.75rem;
+        border-radius: var(--radius-md);
+        font-size: 0.75rem;
+        text-decoration: none;
+        color: var(--text-secondary);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-subtle);
+    }
+    .pagination-links a:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .pagination-links .active span {
+        background: var(--accent-gradient);
+        color: white;
+        border-color: transparent;
+    }
+    .inline {
+        display: inline;
+    }
+</style>
+@endpush

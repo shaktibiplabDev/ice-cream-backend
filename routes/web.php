@@ -19,6 +19,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Inquiry Management
         Route::get('/inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
         Route::get('/inquiries/{id}', [InquiryController::class, 'show'])->name('inquiries.show');
+        Route::post('/inquiries/{id}/reply', [InquiryController::class, 'reply'])->name('inquiries.reply');
         Route::put('/inquiries/{id}/status', [InquiryController::class, 'updateStatus'])->name('inquiries.update-status');
         Route::delete('/inquiries/{id}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
         
@@ -33,7 +34,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-// Welcome page
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('admin.login');
 });

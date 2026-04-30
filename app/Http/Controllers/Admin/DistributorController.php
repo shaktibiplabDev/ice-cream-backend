@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DistributorRequest;
 use App\Models\Distributor;
-use Illuminate\Http\Request;
 
 class DistributorController extends Controller
 {
@@ -19,26 +19,9 @@ class DistributorController extends Controller
         return view('admin.distributors.create');
     }
 
-    public function store(Request $request)
+    public function store(DistributorRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
-            'address' => 'required|string',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'website' => 'nullable|url|max:255',
-            'description' => 'nullable|string',
-            'service_area' => 'nullable|string|max:500',
-            'delivery_capacity' => 'nullable|string|max:100',
-            'is_active' => 'boolean',
-            'timings' => 'nullable|string|max:255',
-            'social_media' => 'nullable|string|max:500',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-        ]);
-
-        Distributor::create($validated);
+        Distributor::create($request->validated());
         
         return redirect()->route('admin.distributors.index')->with('success', 'Distributor added successfully');
     }
@@ -55,27 +38,10 @@ class DistributorController extends Controller
         return view('admin.distributors.edit', compact('distributor'));
     }
 
-    public function update(Request $request, $id)
+    public function update(DistributorRequest $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
-            'address' => 'required|string',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'website' => 'nullable|url|max:255',
-            'description' => 'nullable|string',
-            'service_area' => 'nullable|string|max:500',
-            'delivery_capacity' => 'nullable|string|max:100',
-            'is_active' => 'boolean',
-            'timings' => 'nullable|string|max:255',
-            'social_media' => 'nullable|string|max:500',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-        ]);
-
         $distributor = Distributor::findOrFail($id);
-        $distributor->update($validated);
+        $distributor->update($request->validated());
         
         return redirect()->route('admin.distributors.index')->with('success', 'Distributor updated successfully');
     }

@@ -3,62 +3,137 @@
 @section('title', 'Inquiry Details')
 
 @section('content')
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b flex justify-between items-center">
-            <h3 class="text-lg font-semibold">Inquiry #{{ $inquiry->id }}</h3>
-            <a href="{{ route('admin.inquiries.index') }}" class="text-purple-600 hover:text-purple-900">← Back to List</a>
+    @php
+        $statusClass = match($inquiry->status) {
+            'new' => 'status-new',
+            'read' => 'status-in-progress',
+            'replied' => 'status-resolved',
+            default => 'status-new'
+        };
+        $statusText = ucfirst($inquiry->status);
+    @endphp
+
+    <div class="page-header">
+        <h1>
+            <small>{{ $inquiry->displayNumber() }}</small>
+            {{ $inquiry->name }}
+        </h1>
+        <a href="{{ route('admin.inquiries.index') }}" class="date-badge">← Back to inquiries</a>
+    </div>
+
+    <div class="conversation-layout">
+        <!-- Conversation Thread -->
+        <div class="glass-card">
+            <div class="card-head">
+                <div>
+                    <h2>Conversation</h2>
+                    <p>Incoming inquiry and outgoing email replies</p>
+                </div>
+                <span class="status-badge {{ $statusClass }}">{{ $statusText }}</span>
+            </div>
+
+            <div class="form-panel-body">
+                <div class="thread-list">
+                    @forelse($inquiry->messages as $message)
+                        <div class="thread-message {{ $message->direction === 'outbound' ? 'outbound' : 'inbound' }}">
+                            <div class="thread-meta">
+                                <span>{{ $message->direction === 'outbound' ? 'Celesty → ' . $message->recipient_email : $message->sender_name . ' → Celesty' }}</span>
+                                <span>{{ optional($message->sent_at ?? $message->created_at)->format('M d, Y H:i') }}</span>
+                            </div>
+                            <div class="thread-subject">{{ $message->subject }}</div>
+                            <div class="thread-body">{{ $message->body }}</div>
+                        </div>
+                    @empty
+                        <div class="thread-message inbound">
+                            <div class="thread-meta">
+                                <span>{{ $inquiry->name }} → Celesty</span>
+                                <span>{{ $inquiry->created_at->format('M d, Y H:i') }}</span>
+                            </div>
+                            <div class="thread-subject">Original inquiry</div>
+                            <div class="thread-body">{{ $inquiry->requirement }}</div>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
         </div>
-        
-        <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                    <p class="text-gray-900">{{ $inquiry->name }}</p>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
-                    <p class="text-gray-900">{{ $inquiry->business_name ?? 'N/A' }}</p>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <a href="mailto:{{ $inquiry->email }}" class="text-purple-600 hover:text-purple-900">{{ $inquiry->email }}</a>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Submitted Date</label>
-                    <p class="text-gray-900">{{ $inquiry->created_at->format('F d, Y H:i:s') }}</p>
-                </div>
-                
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Requirement</label>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-gray-900">{{ nl2br(e($inquiry->requirement)) }}</p>
+
+        <!-- Sidebar Panels -->
+        <div class="form-shell">
+            <!-- Reply Form -->
+            <div class="form-panel">
+                <div class="form-panel-head">
+                    <div>
+                        <h2>Reply by Email</h2>
+                        <p>Send a reply directly from the admin panel.</p>
                     </div>
                 </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Current Status</label>
-                    <form action="{{ route('admin.inquiries.update-status', $inquiry->id) }}" method="POST" class="flex items-center space-x-2">
+                <form action="{{ route('admin.inquiries.reply', $inquiry->id) }}" method="POST" class="form-panel-body">
+                    @csrf
+                    <div class="form-field" style="margin-bottom: 1rem;">
+                        <label class="form-label" for="subject">
+                            Subject
+                            <span class="required-label">Required</span>
+                        </label>
+                        <input class="form-input" type="text" name="subject" id="subject" value="{{ old('subject', 'Re: Celesty inquiry ' . $inquiry->displayNumber()) }}" required>
+                        @error('subject') <p class="form-error">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="form-field" style="margin-bottom: 1rem;">
+                        <label class="form-label" for="body">
+                            Message
+                            <span class="required-label">Required</span>
+                        </label>
+                        <textarea class="form-textarea" name="body" id="body" rows="8" required placeholder="Write your reply...">{{ old('body') }}</textarea>
+                        @error('body') <p class="form-error">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">✉️ Send Reply</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Customer Info & Status -->
+            <div class="form-panel">
+                <div class="form-panel-head">
+                    <div>
+                        <h2>Customer Information</h2>
+                        <p>Inquiry details and status controls.</p>
+                    </div>
+                </div>
+                <div class="form-panel-body">
+                    <div style="margin-bottom: 1.25rem;">
+                        <div class="form-help" style="margin-bottom: 0.25rem;">Business Name</div>
+                        <div class="thread-subject">{{ $inquiry->business_name ?: 'Not provided' }}</div>
+                    </div>
+                    <div style="margin-bottom: 1.25rem;">
+                        <div class="form-help" style="margin-bottom: 0.25rem;">Email Address</div>
+                        <a class="action-link" href="mailto:{{ $inquiry->email }}" style="font-size: 0.875rem;">{{ $inquiry->email }}</a>
+                    </div>
+                    <div style="margin-bottom: 1.25rem;">
+                        <div class="form-help" style="margin-bottom: 0.25rem;">Submitted On</div>
+                        <div>{{ $inquiry->created_at->format('F d, Y H:i') }}</div>
+                    </div>
+                    <div style="margin-bottom: 1.25rem;">
+                        <div class="form-help" style="margin-bottom: 0.25rem;">Phone Number</div>
+                        <div>{{ $inquiry->phone ?? 'Not provided' }}</div>
+                    </div>
+
+                    <form action="{{ route('admin.inquiries.update-status', $inquiry->id) }}" method="POST">
                         @csrf
                         @method('PUT')
-                        <select name="status" class="border border-gray-300 rounded px-3 py-1">
-                            <option value="new" {{ $inquiry->status == 'new' ? 'selected' : '' }}>New</option>
-                            <option value="read" {{ $inquiry->status == 'read' ? 'selected' : '' }}>Read</option>
-                            <option value="replied" {{ $inquiry->status == 'replied' ? 'selected' : '' }}>Replied</option>
-                        </select>
-                        <button type="submit" class="bg-purple-600 text-white px-4 py-1 rounded hover:bg-purple-700">Update</button>
+                        <div class="form-field">
+                            <label class="form-label" for="status">Update Status</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="new" @selected($inquiry->status === 'new')>📋 New</option>
+                                <option value="read" @selected($inquiry->status === 'read')>👁️ Read</option>
+                                <option value="replied" @selected($inquiry->status === 'replied')>✉️ Replied</option>
+                            </select>
+                        </div>
+                        <div class="form-actions" style="margin-top: 1rem;">
+                            <button type="submit" class="btn-secondary">Update Status</button>
+                        </div>
                     </form>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Quick Actions</label>
-                    <div class="flex space-x-2">
-                        <a href="mailto:{{ $inquiry->email }}?subject=Response to your inquiry - Celesty Ice Cream" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                            Reply via Email
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
