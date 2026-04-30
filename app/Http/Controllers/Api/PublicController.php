@@ -13,16 +13,6 @@ use Illuminate\Support\Facades\Mail;
 
 class PublicController extends Controller
 {
-    // Helper method to add CORS headers
-    private function corsResponse($data, $status = 200)
-    {
-        return response()->json($data, $status)
-            ->header('Access-Control-Allow-Origin', 'https://demo-celesty.versaero.top')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-            ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN')
-            ->header('Access-Control-Allow-Credentials', 'true');
-    }
-
     // Get all active distributors
     public function distributors()
     {
@@ -38,8 +28,8 @@ class PublicController extends Controller
                 'longitude'
             )
             ->get();
-        
-        return $this->corsResponse([
+
+        return response()->json([
             'success' => true,
             'data' => $distributors
         ]);
@@ -81,7 +71,7 @@ class PublicController extends Controller
             ]);
         }
 
-        return $this->corsResponse([
+        return response()->json([
             'success' => true,
             'message' => 'Inquiry submitted successfully',
             'data' => [

@@ -5,7 +5,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Http\Middleware\PreventRequestForgery; // Add this
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Http\Middleware\HandleCors;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,18 +16,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Add CORS middleware to handle preflight properly
         $middleware->api(prepend: [
-            EnsureFrontendRequestsAreStateful::class,
+            HandleCors::class,
         ]);
-        
-        // New way to exclude CSRF in Laravel 13
+
+        // Remove Sanctum stateful from public API routes - we'll use it only for authenticated routes
+        // $middleware->api(prepend: [
+        //     EnsureFrontendRequestsAreStateful::class,
+        // ]);
+
+        // Remove CSRF for API routes
         $middleware->remove(PreventRequestForgery::class);
-        // Or you can also use:
-        // $middleware->disable(PreventRequestForgery::class);
-        
-        // Alternative: If you need to keep CSRF but exclude specific routes
-        // This requires a different approach - see below
-        
+
         // Redirect unauthenticated users to admin login
         $middleware->redirectGuestsTo(function (Request $request) {
             if ($request->is('admin/*') || $request->routeIs('admin.*')) {
