@@ -201,7 +201,7 @@ class PosController extends Controller
                     StockMovement::create([
                         'warehouse_id' => $request->warehouse_id,
                         'product_id' => $item['product_id'],
-                        'type' => 'removal',
+                        'type' => 'out',
                         'quantity' => $qty,
                         'quantity_before' => $quantityBefore,
                         'quantity_after' => $inventory->quantity,
