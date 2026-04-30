@@ -44,9 +44,10 @@ class Inventory extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function stockMovements(): HasMany
+    public function stockMovements()
     {
-        return $this->hasMany(StockMovement::class);
+        return StockMovement::where('warehouse_id', $this->warehouse_id)
+            ->where('product_id', $this->product_id);
     }
 
     // Available quantity (total - reserved)
