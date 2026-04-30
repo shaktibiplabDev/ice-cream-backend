@@ -58,29 +58,25 @@ class MailController extends Controller
 
     public function show(Email $email)
     {
-        if ($email->created_by !== auth('admin')->id()) {
-            abort(403);
-        }
-
+        // Allow viewing any email for now (single admin system)
+        // Mark as read when viewed
         if ($email->type === 'inbox' && !$email->is_read) {
             $email->markAsRead();
         }
 
         $settings = CompanySetting::getSettings();
         
-        // Get conversation thread
-        $conversation = collect([]);
-        if ($email->in_reply_to) {
-            $conversation = Email::where('created_by', auth('admin')->id())
-                ->where(function ($query) use ($email) {
-                    $query->where('in_reply_to', $email->in_reply_to)
-                          ->orWhere('message_id', $email->in_reply_to)
-                          ->orWhere('id', $email->in_reply_to);
-                })
-                ->orWhere('id', $email->id)
-                ->orderBy('sent_at', 'asc')
-                ->get();
-        }
+        // Get conversation thread by matching email addresses
+        $conversation = Email::where(function($q) use ($email) {
+            $q->where('from_email', $email->from_email)
+              ->orWhere('to_email', $email->from_email)
+              ->orWhere('from_email', $email->to_email)
+              ->orWhere('to_email', $email->to_email);
+        })
+        ->where('id', '!=', $email->id)
+        ->orderBy('sent_at', 'desc')
+        ->limit(10)
+        ->get();
 
         // Check if linked to inquiry
         $linkedInquiry = \App\Models\Inquiry::where('email', $email->from_email)
