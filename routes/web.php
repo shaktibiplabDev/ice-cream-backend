@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\SearchController;
+use App\Http\Controllers\Admin\PosController;
 
 // Admin Authentication Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -69,6 +70,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Search
         Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+        // Point of Sale (POS)
+        Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+        Route::post('/pos', [PosController::class, 'store'])->name('pos.store');
+        Route::get('/pos/nearest-warehouse', [PosController::class, 'nearestWarehouse'])->name('pos.nearest-warehouse');
+        Route::get('/pos/check-inventory', [PosController::class, 'checkInventory'])->name('pos.check-inventory');
+        Route::get('/pos/history', [PosController::class, 'history'])->name('pos.history');
+        Route::get('/pos/bill/{sale}', [PosController::class, 'bill'])->name('pos.bill');
     });
 });
 

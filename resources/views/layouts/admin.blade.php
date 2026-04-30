@@ -1403,6 +1403,10 @@
             </a>
 
             <span class="nav-label" style="margin-top: 1rem;">Quick Actions</span>
+            <a href="{{ route('admin.pos.index') }}" class="nav-item {{ request()->routeIs('admin.pos.*') ? 'active' : '' }}">
+                <span class="nav-icon">🛒</span>
+                Point of Sale
+            </a>
             <a href="{{ route('admin.inventory.low-stock') }}" class="nav-item {{ request()->routeIs('admin.inventory.low-stock') ? 'active' : '' }}">
                 <span class="nav-icon">⚠️</span>
                 Low Stock Alert
