@@ -9,7 +9,7 @@
             Edit Warehouse: {{ $warehouse->name }}
         </h1>
         <div>
-            <a href="{{ route('admin.warehouses.index') }}" class="btn-secondary">← Back to Warehouses</a>
+            <a href="{{ route('admin.warehouses.index') }}" style="text-decoration: none;"><span class="btn-secondary">← Back to Warehouses</span></a>
         </div>
     </div>
 
@@ -17,17 +17,6 @@
         @csrf
         @method('PUT')
 
-        <div class="form-panel-head">
-            <h2>Warehouse Information</h2>
-        </div>
-
-        <div class="form-panel-body">
-            @include('admin.warehouses._form')
-
-            <div class="form-actions">
-                <a href="{{ route('admin.warehouses.index') }}" class="btn-secondary">Cancel</a>
-                <button type="submit" class="btn-primary">💾 Update Warehouse</button>
-            </div>
-        </div>
+        @include('admin.warehouses._form', ['mode' => 'edit'])
     </form>
 @endsection

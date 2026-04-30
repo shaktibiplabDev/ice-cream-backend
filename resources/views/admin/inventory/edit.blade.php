@@ -9,7 +9,9 @@
             {{ $inventory->product->name }} at {{ $inventory->warehouse->name }}
         </h1>
         <div>
-            <a href="{{ route('admin.inventory.index', ['warehouse_id' => $inventory->warehouse_id]) }}" class="btn-secondary">← Back</a>
+            <a href="{{ route('admin.inventory.index', ['warehouse_id' => $inventory->warehouse_id]) }}" style="text-decoration: none;">
+                <span class="btn-secondary">← Back</span>
+            </a>
         </div>
     </div>
 
@@ -87,7 +89,9 @@
     <div class="glass-card" style="margin-top: 1.5rem;">
         <div class="card-head">
             <h2>Recent Movements</h2>
-            <a href="{{ route('admin.inventory.history', ['distributor_id' => $inventory->distributor_id, 'product_id' => $inventory->product_id]) }}" class="action-btn action-view">View All</a>
+            <a href="{{ route('admin.inventory.history', ['warehouse_id' => $inventory->warehouse_id, 'product_id' => $inventory->product_id]) }}" style="text-decoration: none;">
+                <span class="action-btn action-view">View All</span>
+            </a>
         </div>
         <div class="table-wrap">
             <table class="data-table">
@@ -101,7 +105,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($inventory->movements()->latest()->take(5)->get() as $movement)
+                    @forelse($inventory->stockMovements()->latest()->take(5)->get() as $movement)
                     <tr>
                         <td>{{ $movement->created_at->format('M d, Y H:i') }}</td>
                         <td>

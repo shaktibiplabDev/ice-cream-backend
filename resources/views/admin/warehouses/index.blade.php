@@ -9,7 +9,9 @@
             All Warehouses
         </h1>
         <div>
-            <a href="{{ route('admin.warehouses.create') }}" class="btn-primary">➕ Add Warehouse</a>
+            <a href="{{ route('admin.warehouses.create') }}" style="text-decoration: none;">
+                <span class="btn-primary">➕ Add Warehouse</span>
+            </a>
         </div>
     </div>
 
@@ -40,7 +42,7 @@
                             <div>{{ $wh->city }}</div>
                             <div style="font-size: 0.7rem; color: var(--text-muted);">{{ Str::limit($wh->address, 30) }}</div>
                             @if($wh->map_url)
-                                <a href="{{ $wh->map_url }}" target="_blank" style="font-size: 0.7rem;">📍 View Map</a>
+                                <a href="{{ $wh->map_url }}" target="_blank" style="font-size: 0.7rem; text-decoration: none;">📍 View Map</a>
                             @endif
                         </td>
                         <td>
@@ -54,8 +56,12 @@
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a href="{{ route('admin.warehouses.show', $wh->id) }}" class="action-btn action-view">👁️ View</a>
-                                <a href="{{ route('admin.warehouses.edit', $wh->id) }}" class="action-btn action-edit">✏️ Edit</a>
+                                <a href="{{ route('admin.warehouses.show', $wh->id) }}" style="text-decoration: none;">
+                                    <span class="action-btn action-view">👁️ View</span>
+                                </a>
+                                <a href="{{ route('admin.warehouses.edit', $wh->id) }}" style="text-decoration: none;">
+                                    <span class="action-btn action-edit">✏️ Edit</span>
+                                </a>
                                 <form action="{{ route('admin.warehouses.destroy', $wh->id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this warehouse?')">
                                     @csrf
                                     @method('DELETE')
@@ -70,7 +76,9 @@
                             <div class="empty-state-icon">🏭</div>
                             <div>No warehouses found</div>
                             <div style="margin-top: 0.5rem;">
-                                <a href="{{ route('admin.warehouses.create') }}" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.75rem;">+ Add your first warehouse</a>
+                                <a href="{{ route('admin.warehouses.create') }}" style="text-decoration: none;">
+                                    <span class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.75rem;">+ Add your first warehouse</span>
+                                </a>
                             </div>
                         </td>
                     </tr>
