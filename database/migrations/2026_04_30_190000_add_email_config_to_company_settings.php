@@ -30,6 +30,9 @@ return new class extends Migration
             // Email fetching settings
             $table->boolean('email_fetching_enabled')->default(false);
             $table->timestamp('last_email_fetch_at')->nullable();
+
+            // Cron job settings
+            $table->string('cron_token', 64)->nullable();
         });
     }
 

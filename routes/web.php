@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\PosController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\MailController;
+use App\Http\Controllers\Admin\CronController;
 
 // Admin Authentication Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -105,9 +106,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/mail/{email}', [MailController::class, 'destroy'])->name('mail.destroy');
         Route::post('/mail/{email}/star', [MailController::class, 'toggleStar'])->name('mail.star');
         Route::post('/mail/{email}/important', [MailController::class, 'toggleImportant'])->name('mail.important');
+
+        // Cron Jobs
+        Route::get('/cron', [CronController::class, 'index'])->name('cron.index');
+        Route::post('/cron/trigger/{job}', [CronController::class, 'trigger'])->name('cron.trigger');
+        Route::get('/cron/status', [CronController::class, 'status'])->name('cron.status');
+        Route::get('/cron/regenerate', [CronController::class, 'regenerateToken'])->name('cron.regenerate');
     });
 });
 
 Route::get('/', function () {
     return redirect()->route('admin.login');
 });
+
+// Public Cron Endpoint (no auth required)
+Route::get('/cron/{token}', [CronController::class, 'run'])->name('cron.run');

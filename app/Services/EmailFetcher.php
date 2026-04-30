@@ -19,11 +19,52 @@ class EmailFetcher
     }
 
     /**
+     * Get IMAP setting from env or database
+     */
+    private function getImapHost(): ?string
+    {
+        return env('IMAP_HOST', $this->settings->imap_host);
+    }
+
+    private function getImapPort(): int
+    {
+        return (int) env('IMAP_PORT', $this->settings->imap_port ?? 993);
+    }
+
+    private function getImapUsername(): ?string
+    {
+        return env('IMAP_USERNAME', $this->settings->imap_username);
+    }
+
+    private function getImapPassword(): ?string
+    {
+        return env('IMAP_PASSWORD', $this->settings->imap_password);
+    }
+
+    private function getImapEncryption(): string
+    {
+        return env('IMAP_ENCRYPTION', $this->settings->imap_encryption ?? 'ssl');
+    }
+
+    private function getImapFolder(): string
+    {
+        return env('IMAP_FOLDER', $this->settings->imap_folder ?? 'INBOX');
+    }
+
+    /**
+     * Check if email fetching is enabled
+     */
+    private function isEnabled(): bool
+    {
+        return env('IMAP_ENABLED', $this->settings->email_fetching_enabled ?? false);
+    }
+
+    /**
      * Fetch emails from IMAP server
      */
     public function fetch(): array
     {
-        if (!$this->settings->email_fetching_enabled) {
+        if (!$this->isEnabled()) {
             return ['status' => 'disabled', 'message' => 'Email fetching is disabled'];
         }
 
@@ -34,10 +75,10 @@ class EmailFetcher
         $stats = ['fetched' => 0, 'errors' => 0, 'messages' => []];
 
         try {
-            $folder = $this->settings->imap_folder ?? 'INBOX';
+            $folder = $this->getImapFolder();
             $imapPath = $this->buildImapPath($folder);
 
-            $mailbox = imap_open($imapPath, $this->settings->imap_username, $this->settings->imap_password);
+            $mailbox = imap_open($imapPath, $this->getImapUsername(), $this->getImapPassword());
 
             if (!$mailbox) {
                 throw new \Exception('Could not open mailbox: ' . imap_last_error());
@@ -221,7 +262,7 @@ class EmailFetcher
 
                     // Save to storage
                     $path = 'emails/attachments/' . uniqid() . '_' . $filename;
-                    \Storage::disk('local')->put($path, $decoded);
+                    Storage::disk('local')->put($path, $decoded);
 
                     $attachments[] = [
                         'filename' => $filename,
@@ -318,9 +359,9 @@ class EmailFetcher
      */
     private function buildImapPath(string $folder): string
     {
-        $host = $this->settings->imap_host;
-        $port = $this->settings->imap_port ?? 993;
-        $encryption = $this->settings->imap_encryption ?? 'ssl';
+        $host = $this->getImapHost();
+        $port = $this->getImapPort();
+        $encryption = $this->getImapEncryption();
 
         $flags = '/' . strtoupper($encryption);
 
@@ -345,7 +386,7 @@ class EmailFetcher
             return false;
         }
 
-        if (!$this->settings->imap_host || !$this->settings->imap_username || !$this->settings->imap_password) {
+        if (!$this->getImapHost() || !$this->getImapUsername() || !$this->getImapPassword()) {
             Log::error('IMAP settings incomplete');
             return false;
         }

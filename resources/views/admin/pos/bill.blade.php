@@ -184,7 +184,53 @@
 
         <!-- Amount in Words -->
         <div class="amount-words">
-            <strong>Amount in Words:</strong> {{ number_to_words($sale->total_amount) }} Only
+            <strong>Amount in Words:</strong>
+            @php
+                $amount = $sale->total_amount;
+                $whole = floor($amount);
+                $decimal = round(($amount - $whole) * 100);
+                $ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+                $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+                function numberToWordsChunk($num) use (&$ones, &$tens) {
+                    $result = '';
+                    if ($num >= 100) {
+                        $result .= $ones[floor($num / 100)] . ' Hundred';
+                        $num %= 100;
+                        if ($num > 0) $result .= ' and ';
+                    }
+                    if ($num >= 20) {
+                        $result .= $tens[floor($num / 10)];
+                        $num %= 10;
+                        if ($num > 0) $result .= ' ' . $ones[$num];
+                    } elseif ($num > 0) {
+                        $result .= $ones[$num];
+                    }
+                    return $result;
+                }
+                $parts = [];
+                $temp = $whole;
+                if ($temp >= 10000000) {
+                    $parts[] = numberToWordsChunk(floor($temp / 10000000)) . ' Crore';
+                    $temp %= 10000000;
+                }
+                if ($temp >= 100000) {
+                    $parts[] = numberToWordsChunk(floor($temp / 100000)) . ' Lakh';
+                    $temp %= 100000;
+                }
+                if ($temp >= 1000) {
+                    $parts[] = numberToWordsChunk(floor($temp / 1000)) . ' Thousand';
+                    $temp %= 1000;
+                }
+                if ($temp > 0) {
+                    $parts[] = numberToWordsChunk($temp);
+                }
+                $result = $whole == 0 ? 'Zero' : implode(' ', $parts);
+                if ($decimal > 0) {
+                    $result .= ' and ' . numberToWordsChunk($decimal) . ' Paise';
+                }
+                echo $result;
+            @endphp
+            Only
         </div>
 
         <!-- Payment Status -->
