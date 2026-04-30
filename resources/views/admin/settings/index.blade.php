@@ -99,6 +99,7 @@
                     </div>
                 </div>
             </div>
+        </div>
 
             <!-- Tax & GST Tab -->
             <div id="tab-tax" class="tab-pane">
@@ -162,6 +163,7 @@
                     </div>
                 </div>
             </div>
+        </div>
 
             <!-- Invoice Tab -->
             <div id="tab-invoice" class="tab-pane">
@@ -203,6 +205,7 @@
                     </div>
                 </div>
             </div>
+        </div>
 
             <!-- Bank Tab -->
             <div id="tab-bank" class="tab-pane">
@@ -340,6 +343,7 @@
                 </div>
             </div>
         </div>
+    </div>
 
         <div style="position: fixed; bottom: 0; left: var(--sidebar-w); right: 0; background: var(--bg-card); border-top: 1px solid var(--border-subtle); padding: 1rem 1.5rem; display: flex; justify-content: flex-end; z-index: 100;">
             <button type="submit" class="btn-primary" style="padding: 0.875rem 2rem; font-size: 1rem;">
