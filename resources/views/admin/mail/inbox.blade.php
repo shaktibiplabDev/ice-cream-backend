@@ -76,7 +76,7 @@
 
                         <div class="email-list-gmail">
                             @foreach($emails as $email)
-                                <div class="email-row-gmail {{ !$email->is_read ? 'unread' : '' }}" onclick="window.location='{{ route('admin.mail.show', $email) }}'">
+                                <a href="{{ route('admin.mail.show', $email) }}" class="email-row-gmail {{ !$email->is_read ? 'unread' : '' }}">
                                     <div class="col-checkbox" onclick="event.stopPropagation()">
                                         <input type="checkbox" class="email-checkbox">
                                     </div>
@@ -95,7 +95,7 @@
                                     <div class="col-date">
                                         <span class="date-text">{{ $email->sent_at?->format('M j') ?? 'Draft' }}</span>
                                     </div>
-                                </div>
+                                </a>
                             @endforeach
                         </div>
                     </div>
@@ -225,8 +225,8 @@
         }
 
         .nav-item.active {
-            background: #d3e3fd;
-            color: #001d35;
+            background: rgba(79, 70, 229, 0.2);
+            color: var(--accent-primary);
             font-weight: 500;
         }
 
@@ -281,21 +281,25 @@
         .email-row-gmail {
             display: flex;
             align-items: center;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-bottom: 1px solid var(--border-subtle);
             cursor: pointer;
             font-size: 14px;
             transition: all 0.15s;
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        a.email-row-gmail {
+            color: inherit;
         }
 
         .email-row-gmail:hover {
-            box-shadow: inset 0 -1px 0 0 var(--border-subtle), inset 0 1px 0 0 var(--border-subtle);
-            z-index: 1;
-            position: relative;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .email-row-gmail.unread {
-            background: #f2f6fc;
+            background: rgba(79, 70, 229, 0.08);
         }
 
         .email-row-gmail.unread .sender-text,
@@ -353,6 +357,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             display: block;
+            font-weight: 500;
         }
 
         .col-content {
@@ -376,6 +381,13 @@
             overflow: hidden;
             text-overflow: ellipsis;
             flex: 1;
+            margin-left: 8px;
+        }
+
+        .body-preview::before {
+            content: "—";
+            margin-right: 8px;
+            color: var(--text-muted);
         }
 
         .col-date {

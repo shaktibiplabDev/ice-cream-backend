@@ -3,431 +3,219 @@
 @section('title', $email->subject ?: 'No Subject')
 
 @section('content')
-    <div class="email-detail-container">
-        <!-- Email Header -->
-        <div class="email-header">
-            <div class="email-header-left">
-                <a href="{{ route('admin.mail.inbox') }}" class="btn-back">
-                    ← Back to Inbox
+    <div class="email-view-container">
+        <!-- Toolbar -->
+        <div class="email-toolbar">
+            <div class="toolbar-left">
+                <a href="{{ route('admin.mail.inbox') }}" class="btn-icon" title="Back to Inbox">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
                 </a>
-                <h1 class="email-subject">{{ $email->subject ?: '(No Subject)' }}</h1>
-                
-                <div class="email-meta">
-                    @if($email->type === 'sent')
-                        <div class="email-participant">
-                            <span class="label">To:</span>
-                            <span class="name">{{ $email->to_name ?? 'Unknown' }}</span>
-                            <span class="email">&lt;{{ $email->to_email }}&gt;</span>
-                        </div>
-                        <div class="email-participant" style="margin-top: 0.5rem;">
-                            <span class="label">From:</span>
-                            <span class="name">{{ $email->from_name }}</span>
-                            <span class="email">&lt;{{ $email->from_email }}&gt;</span>
-                        </div>
-                    @else
-                        <div class="email-participant">
-                            <span class="label">From:</span>
-                            <span class="name">{{ $email->from_name }}</span>
-                            <span class="email">&lt;{{ $email->from_email }}&gt;</span>
-                        </div>
-                        <div class="email-participant" style="margin-top: 0.5rem;">
-                            <span class="label">To:</span>
-                            <span class="name">{{ $email->to_name ?? 'Me' }}</span>
-                            <span class="email">&lt;{{ $email->to_email }}&gt;</span>
-                        </div>
-                    @endif
-                    
-                    @if($email->cc)
-                        <div class="email-cc">
-                            <span class="label">CC:</span> {{ $email->cc }}
-                        </div>
-                    @endif
-                </div>
-            </div>
-            
-            <div class="email-header-right">
-                <div class="email-date">
-                    {{ $email->sent_at?->format('F j, Y \a\t g:i A') ?? 'Draft' }}
-                </div>
-                <div class="email-actions">
-                    @if($email->type !== 'sent')
-                        <a href="{{ route('admin.mail.reply', $email) }}" class="btn-primary">↩️ Reply</a>
-                    @endif
-                    <button class="btn-secondary" onclick="toggleStar('{{ $email->id }}')" id="star-btn" type="button">
-                        {{ $email->is_starred ? '⭐ Starred' : '☆ Star' }}
+                @if($email->type !== 'sent')
+                    <a href="{{ route('admin.mail.reply', $email) }}" class="btn-icon" title="Reply">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6l6-6"/>
+                        </svg>
+                    </a>
+                @endif
+                <button class="btn-icon {{ $email->is_starred ? 'active' : '' }}" onclick="toggleStar('{{ $email->id }}')" id="star-btn" type="button" title="Star">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="{{ $email->is_starred ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </button>
+                <form action="{{ route('admin.mail.destroy', $email) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete this email?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-icon" title="Delete">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
                     </button>
-                    <form action="{{ route('admin.mail.destroy', $email) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete this email?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn-secondary">🗑️ Delete</button>
-                    </form>
-                </div>
+                </form>
             </div>
         </div>
 
-        <!-- Email Body -->
-        <div class="email-body-card">
-            <div class="email-body-content">
+        <!-- Email Content -->
+        <div class="email-content-wrapper">
+            <h1 class="email-view-subject">{{ $email->subject ?: '(No Subject)' }}</h1>
+            
+            <!-- Sender Info Card -->
+            <div class="email-sender-card">
+                <div class="sender-avatar">
+                    {{ strtoupper(substr($email->type === 'sent' ? $email->to_name : $email->from_name, 0, 1)) }}
+                </div>
+                <div class="sender-details">
+                    <div class="sender-line">
+                        <span class="sender-name">{{ $email->type === 'sent' ? $email->to_name : $email->from_name }}</span>
+                        <span class="sender-email">&lt;{{ $email->type === 'sent' ? $email->to_email : $email->from_email }}&gt;</span>
+                    </div>
+                    <div class="recipient-line">
+                        <span class="to-label">to</span>
+                        <span class="to-email">{{ $email->type === 'sent' ? $email->from_email : $email->to_email }}</span>
+                    </div>
+                </div>
+                <div class="email-time">
+                    {{ $email->sent_at?->format('M j, Y, g:i A') ?? 'Draft' }}
+                </div>
+            </div>
+
+            <!-- Email Body -->
+            <div class="email-view-body">
                 {!! nl2br(e($email->body)) !!}
             </div>
-            
+
+            <!-- Attachments -->
             @if($email->attachments && count($email->attachments) > 0)
-                <div class="email-attachments">
-                    <div class="attachments-header">
-                        📎 {{ count($email->attachments) }} Attachment{{ count($email->attachments) > 1 ? 's' : '' }}
-                    </div>
-                    <div class="attachments-list">
+                <div class="email-view-attachments">
+                    <div class="attachments-title">{{ count($email->attachments) }} Attachment{{ count($email->attachments) > 1 ? 's' : '' }}</div>
+                    <div class="attachments-grid">
                         @foreach($email->attachments as $attachment)
-                            <a href="{{ Storage::url($attachment['path']) }}" target="_blank" class="attachment-item">
-                                <span class="attachment-icon">📄</span>
-                                <span class="attachment-name">{{ $attachment['name'] }}</span>
-                                <span class="attachment-size">({{ number_format($attachment['size'] / 1024, 1) }} KB)</span>
+                            <a href="{{ Storage::url($attachment['path']) }}" target="_blank" class="attachment-card">
+                                <div class="attachment-icon-file">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                                        <polyline points="13 2 13 9 20 9"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="attachment-info">
+                                    <div class="attachment-name-file">{{ $attachment['name'] }}</div>
+                                    <div class="attachment-size-file">{{ number_format($attachment['size'] / 1024, 1) }} KB</div>
+                                </div>
                             </a>
                         @endforeach
                     </div>
                 </div>
             @endif
+
+            <!-- Reply Actions -->
+            @if($email->type !== 'sent')
+                <div class="email-reply-actions">
+                    <a href="{{ route('admin.mail.reply', $email) }}" class="btn-reply">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6l6-6"/>
+                        </svg>
+                        Reply
+                    </a>
+                </div>
+            @endif
         </div>
 
-        <!-- Reply Form -->
-        @if($email->type !== 'sent')
-            <div id="reply-form" class="reply-form-container" style="display: none;">
-                <div class="reply-header">
-                    <h3>↩️ Reply to {{ $email->from_name }}</h3>
+        <!-- Linked Inquiry -->
+        @if(isset($linkedInquiry) && $linkedInquiry)
+            <div class="linked-inquiry-section">
+                <div class="section-header">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    Linked to Inquiry
                 </div>
-                <form action="{{ route('admin.mail.reply', $email) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="form-group">
-                        <label>To</label>
-                        <input type="text" value="{{ $email->from_name }} <{{ $email->from_email }}>" disabled class="form-control">
-                        <input type="hidden" name="to_email" value="{{ $email->from_email }}">
-                        <input type="hidden" name="to_name" value="{{ $email->from_name }}">
+                <a href="{{ route('admin.inquiries.show', $linkedInquiry) }}" class="inquiry-link-card">
+                    <div class="inquiry-number-badge">{{ $linkedInquiry->inquiry_number }}</div>
+                    <div class="inquiry-details">
+                        <div class="inquiry-person">{{ $linkedInquiry->name }}</div>
+                        <div class="inquiry-company">{{ $linkedInquiry->business_name }}</div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Subject</label>
-                        <input type="text" name="subject" value="Re: {{ $email->subject }}" class="form-control">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Message</label>
-                        <textarea name="body" rows="8" class="form-control" placeholder="Type your reply here..." required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Attachments</label>
-                        <input type="file" name="attachments[]" multiple class="form-control">
-                        <small style="color: var(--text-muted);">Max 10MB per file</small>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">📤 Send Reply</button>
-                        <button type="button" class="btn-secondary" onclick="toggleReplyForm()">Cancel</button>
-                    </div>
-                </form>
+                    <span class="inquiry-status-badge {{ $linkedInquiry->status }}">{{ $linkedInquiry->status }}</span>
+                </a>
             </div>
         @endif
 
         <!-- Conversation Thread -->
-        @if(isset($conversation) && $conversation->count() > 1)
-            <div class="conversation-thread">
-                <h3>💬 Conversation</h3>
-                @foreach($conversation as $threadEmail)
-                    @if($threadEmail->id !== $email->id)
-                        <a href="{{ route('admin.mail.show', $threadEmail) }}" class="thread-item {{ $threadEmail->id === $email->id ? 'active' : '' }}">
-                            <div class="thread-avatar">
-                                {{ substr($threadEmail->from_name, 0, 1) }}
-                            </div>
-                            <div class="thread-content">
-                                <div class="thread-header">
-                                    <span class="thread-from">{{ $threadEmail->from_name }}</span>
-                                    <span class="thread-date">{{ $threadEmail->sent_at?->format('M j, g:i A') }}</span>
+        @if(isset($conversation) && $conversation->count() > 0)
+            <div class="conversation-section">
+                <div class="section-header">💬 Conversation</div>
+                <div class="conversation-list">
+                    @foreach($conversation as $threadEmail)
+                        <a href="{{ route('admin.mail.show', $threadEmail) }}" class="conversation-item {{ $threadEmail->id === $email->id ? 'current' : '' }}">
+                            <div class="conv-avatar">{{ strtoupper(substr($threadEmail->from_name, 0, 1)) }}</div>
+                            <div class="conv-content">
+                                <div class="conv-header">
+                                    <span class="conv-from">{{ $threadEmail->from_name }}</span>
+                                    <span class="conv-date">{{ $threadEmail->sent_at?->format('M j') }}</span>
                                 </div>
-                                <div class="thread-subject">{{ $threadEmail->subject }}</div>
-                                <div class="thread-preview">{{ $threadEmail->getExcerpt(80) }}</div>
+                                <div class="conv-subject">{{ $threadEmail->subject ?: '(No Subject)' }}</div>
+                                <div class="conv-preview">{{ $threadEmail->getExcerpt(60) }}</div>
                             </div>
                         </a>
-                    @endif
-                @endforeach
-            </div>
-        @endif
-
-        <!-- Linked Inquiry -->
-        @if(isset($linkedInquiry) && $linkedInquiry)
-            <div class="linked-inquiry">
-                <h3>🔗 Linked Inquiry</h3>
-                <a href="{{ route('admin.inquiries.show', $linkedInquiry) }}" class="inquiry-card">
-                    <div class="inquiry-number">{{ $linkedInquiry->inquiry_number }}</div>
-                    <div class="inquiry-info">
-                        <div class="inquiry-name">{{ $linkedInquiry->name }}</div>
-                        <div class="inquiry-business">{{ $linkedInquiry->business_name }}</div>
-                    </div>
-                    <span class="inquiry-status {{ $linkedInquiry->status }}">{{ $linkedInquiry->status }}</span>
-                </a>
+                    @endforeach
+                </div>
             </div>
         @endif
     </div>
 
     <style>
-        .email-detail-container {
-            max-width: 900px;
+        .email-view-container {
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 1.5rem;
+            padding: 0 1.5rem 1.5rem;
         }
 
-        .email-header {
+        .email-toolbar {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 2rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
+            align-items: center;
+            padding: 0.75rem 0;
             border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 1.5rem;
         }
 
-        .email-header-left {
-            flex: 1;
-        }
-
-        .btn-back {
-            display: inline-flex;
+        .toolbar-left {
+            display: flex;
             align-items: center;
             gap: 0.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-            transition: color 0.2s;
         }
 
-        .btn-back:hover {
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
             color: var(--text-primary);
         }
 
-        .email-subject {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
+        .btn-icon.active {
+            color: #fbbf24;
+        }
+
+        .email-content-wrapper {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-view-subject {
+            font-size: 1.375rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
             line-height: 1.3;
         }
 
-        .email-meta {
-            font-size: 0.875rem;
-        }
-
-        .email-participant {
+        .email-sender-card {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .email-participant .label {
-            color: var(--text-muted);
-            width: 50px;
-        }
-
-        .email-participant .name {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .email-participant .email {
-            color: var(--text-muted);
-        }
-
-        .email-cc {
-            margin-top: 0.5rem;
-            color: var(--text-muted);
-        }
-
-        .email-cc .label {
-            color: var(--text-muted);
-            width: 50px;
-            display: inline-block;
-        }
-
-        .email-header-right {
-            text-align: right;
-        }
-
-        .email-date {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-        }
-
-        .email-actions {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .email-body-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-subtle);
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-        }
-
-        .email-body-content {
-            padding: 2rem;
-            line-height: 1.8;
-            color: var(--text-secondary);
-            font-size: 0.9375rem;
-        }
-
-        .email-attachments {
-            padding: 1.5rem 2rem;
-            border-top: 1px solid var(--border-subtle);
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .attachments-header {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-        }
-
-        .attachments-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .attachment-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: var(--radius-md);
-            text-decoration: none;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            transition: all 0.2s;
-        }
-
-        .attachment-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .attachment-icon {
-            font-size: 1.25rem;
-        }
-
-        .attachment-name {
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .attachment-size {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-        }
-
-        .reply-form-container {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-subtle);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .reply-header {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .reply-header h3 {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-size: 0.875rem;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-        }
-
-        .form-control:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1.5rem;
-        }
-
-        .conversation-thread {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-subtle);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .conversation-thread h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--text-secondary);
-        }
-
-        .thread-item {
-            display: flex;
+            align-items: flex-start;
             gap: 1rem;
-            padding: 1rem;
-            border-radius: var(--radius-md);
-            text-decoration: none;
-            color: var(--text-secondary);
-            transition: all 0.2s;
-            margin-bottom: 0.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 1.5rem;
         }
 
-        .thread-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .thread-item.active {
-            background: rgba(79, 70, 229, 0.1);
-            border: 1px solid var(--accent-primary);
-        }
-
-        .thread-avatar {
+        .sender-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -437,60 +225,158 @@
             justify-content: center;
             font-weight: 600;
             color: white;
+            font-size: 1rem;
             flex-shrink: 0;
         }
 
-        .thread-content {
+        .sender-details {
             flex: 1;
             min-width: 0;
         }
 
-        .thread-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .sender-line {
             margin-bottom: 0.25rem;
         }
 
-        .thread-from {
+        .sender-name {
             font-weight: 500;
             color: var(--text-primary);
         }
 
-        .thread-date {
+        .sender-email {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .recipient-line {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .to-label {
+            color: var(--text-muted);
+            margin-right: 0.25rem;
+        }
+
+        .to-email {
+            color: var(--text-secondary);
+        }
+
+        .email-time {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .email-view-body {
+            font-size: 0.9375rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-view-attachments {
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-subtle);
+            margin-bottom: 1.5rem;
+        }
+
+        .attachments-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .attachments-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .attachment-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .attachment-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-primary);
+        }
+
+        .attachment-icon-file {
+            color: var(--text-muted);
+        }
+
+        .attachment-name-file {
+            font-size: 0.875rem;
+            font-weight: 500;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .attachment-size-file {
             font-size: 0.75rem;
             color: var(--text-muted);
         }
 
-        .thread-subject {
+        .email-reply-actions {
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .btn-reply {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            background: var(--accent-gradient);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
             font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
+            transition: all 0.2s;
         }
 
-        .thread-preview {
-            font-size: 0.8125rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .btn-reply:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
 
-        .linked-inquiry {
+        .linked-inquiry-section,
+        .conversation-section {
             background: var(--bg-card);
             border-radius: var(--radius-lg);
             border: 1px solid var(--border-subtle);
             padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        .linked-inquiry h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
             color: var(--text-secondary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .inquiry-card {
+        .inquiry-link-card {
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -499,35 +385,39 @@
             border-radius: var(--radius-md);
             text-decoration: none;
             color: var(--text-secondary);
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
 
-        .inquiry-card:hover {
+        .inquiry-link-card:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        .inquiry-number {
+        .inquiry-number-badge {
             font-family: monospace;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             color: var(--accent-primary);
             font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: var(--radius-sm);
         }
 
-        .inquiry-info {
+        .inquiry-details {
             flex: 1;
         }
 
-        .inquiry-name {
+        .inquiry-person {
             font-weight: 500;
             color: var(--text-primary);
+            font-size: 0.875rem;
         }
 
-        .inquiry-business {
-            font-size: 0.8125rem;
+        .inquiry-company {
+            font-size: 0.75rem;
             color: var(--text-muted);
         }
 
-        .inquiry-status {
+        .inquiry-status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
             font-size: 0.75rem;
@@ -535,55 +425,134 @@
             text-transform: capitalize;
         }
 
-        .inquiry-status.new {
+        .inquiry-status-badge.new {
             background: rgba(248, 113, 113, 0.2);
             color: #f87171;
         }
 
-        .inquiry-status.in_progress {
+        .inquiry-status-badge.in_progress {
             background: rgba(251, 191, 36, 0.2);
             color: #fbbf24;
         }
 
-        .inquiry-status.resolved {
+        .inquiry-status-badge.resolved {
             background: rgba(52, 211, 153, 0.2);
             color: #34d399;
         }
 
+        .conversation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 0.875rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+
+        .conversation-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .conversation-item.current {
+            background: rgba(79, 70, 229, 0.1);
+            border: 1px solid var(--accent-primary);
+        }
+
+        .conv-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .conv-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .conv-from {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .conv-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .conv-subject {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.125rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conv-preview {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         @media (max-width: 768px) {
-            .email-header {
-                flex-direction: column;
-                gap: 1rem;
+            .email-content-wrapper {
+                padding: 1rem;
             }
 
-            .email-header-right {
-                text-align: left;
+            .email-sender-card {
+                flex-wrap: wrap;
             }
 
-            .email-actions {
-                justify-content: flex-start;
+            .email-time {
+                width: 100%;
+                margin-top: 0.5rem;
             }
         }
     </style>
 
     <script>
-        function toggleReplyForm() {
-            const form = document.getElementById('reply-form');
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
-        }
-
         function toggleStar(emailId) {
             fetch(`/admin/mail/${emailId}/star`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
                 },
             })
             .then(response => response.json())
             .then(data => {
                 const btn = document.getElementById('star-btn');
-                btn.textContent = data.is_starred ? '⭐ Starred' : '☆ Star';
-            });
+                const svg = btn.querySelector('svg');
+                svg.setAttribute('fill', data.is_starred ? 'currentColor' : 'none');
+                btn.classList.toggle('active', data.is_starred);
+            })
+            .catch(err => console.error('Error:', err));
         }
     </script>
 @endsection
