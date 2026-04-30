@@ -58,6 +58,7 @@ class CompanySetting extends Model
         'last_email_fetch_at',
         // Cron settings
         'cron_token',
+        'backup_days',
     ];
 
     protected $casts = [
@@ -69,6 +70,7 @@ class CompanySetting extends Model
         'last_email_fetch_at' => 'datetime',
         'imap_port' => 'integer',
         'mail_port' => 'integer',
+        'backup_days' => 'integer',
     ];
 
     /**

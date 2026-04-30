@@ -1618,7 +1618,7 @@
                 Cron Jobs
             </a>
             <span class="nav-label" style="margin-top: 1rem;">External</span>
-            <a href="{{ url('/') }}" class="nav-item" target="_blank">
+            <a href="{{ env('FRONTEND_URL', url('/')) }}" class="nav-item" target="_blank">
                 <span class="nav-icon">🏠</span>
                 Public Site
             </a>

@@ -87,6 +87,33 @@
             </div>
         </div>
 
+        <!-- Backup Settings -->
+        <div class="glass-card">
+            <div class="card-head">
+                <h2>💾 Backup Settings</h2>
+            </div>
+            <div class="form-body" style="padding: 1.25rem;">
+                <form action="{{ route('admin.settings.update') }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    
+                    <div class="form-group">
+                        <label>Backup Interval (days)</label>
+                        <input type="number" name="backup_days" value="{{ $settings->backup_days ?? 30 }}" class="form-control" min="1" max="365">
+                        <small style="color: var(--text-muted);">Database backup runs every {{ $settings->backup_days ?? 30 }} days</small>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="margin-top: 0.5rem;">
+                        💾 Save Backup Settings
+                    </button>
+                </form>
+
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+                    <small style="color: var(--text-muted);">Backups are stored in <code>storage/app/backups/</code></small>
+                </div>
+            </div>
+        </div>
+
         <!-- Manual Trigger -->
         <div class="glass-card">
             <div class="card-head">
@@ -108,6 +135,9 @@
                     <button onclick="triggerJob('view')" class="btn-primary" style="justify-content: flex-start; gap: 0.5rem; background: rgba(251, 191, 36, 0.2);">
                         👁️ Clear Views
                     </button>
+                    <button onclick="triggerJob('backup')" class="btn-primary" style="justify-content: flex-start; gap: 0.5rem; background: rgba(52, 211, 153, 0.2);">
+                        💾 Run Backup
+                    </button>
                 </div>
 
                 <div id="trigger-result" style="margin-top: 1rem; padding: 0.75rem; border-radius: 6px; display: none;"></div>
@@ -128,7 +158,7 @@
                             <li>Create a free account</li>
                             <li>Click "Create cronjob"</li>
                             <li>Paste the Cron URL above</li>
-                            <li>Set schedule to "Every 5 minutes"</li>
+                            <li>Set schedule to "Every 1 minute"</li>
                             <li>Save and you're done!</li>
                         </ol>
                     </div>
@@ -138,7 +168,7 @@
                             <li>Run <code style="background: rgba(0,0,0,0.3); padding: 0.25rem 0.5rem; border-radius: 4px;">crontab -e</code></li>
                             <li>Add this line:</li>
                         </ol>
-                        <code style="display: block; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; word-break: break-all;">*/5 * * * * curl -s "{{ $cronUrl }}" > /dev/null 2>&1</code>
+                        <code style="display: block; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; word-break: break-all;">* * * * * curl -s "{{ $cronUrl }}" > /dev/null 2>&1</code>
                     </div>
                 </div>
             </div>

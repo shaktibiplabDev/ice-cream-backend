@@ -31,17 +31,17 @@ class CronController extends Controller
         $lastRuns = [
             'email_fetch' => $settings->last_email_fetch_at?->diffForHumans() ?? 'Never',
             'cache_cleanup' => cache('last_cache_cleanup')?->diffForHumans() ?? 'Never',
-            'backup' => cache('last_backup')?->diffForHumans() ?? 'Never',
+            'backup' => cache('last_backup_date')?->diffForHumans() ?? 'Never',
         ];
 
         // Enabled jobs
         $enabledJobs = [
             'email_fetch' => $settings->email_fetching_enabled,
             'cache_cleanup' => true,
-            'backup' => false, // TODO: implement backup
+            'backup' => true,
         ];
 
-        return view('admin.cron.index', compact('cronUrl', 'lastRuns', 'enabledJobs'));
+        return view('admin.cron.index', compact('cronUrl', 'lastRuns', 'enabledJobs', 'settings'));
     }
 
     /**
@@ -83,7 +83,21 @@ class CronController extends Controller
             $results['cache_cleanup'] = ['status' => 'error', 'message' => $e->getMessage()];
         }
 
-        // 3. Clear expired sessions
+        // 3. Run Backup (if due)
+        $lastBackup = cache()->get('last_backup_date');
+        $backupDays = $settings->backup_days ?? 30;
+        
+        if (!$lastBackup || now()->diffInDays($lastBackup) >= $backupDays) {
+            try {
+                Artisan::call('backup:run');
+                $results['backup'] = ['status' => 'success'];
+            } catch (\Exception $e) {
+                Log::error('Backup failed in cron', ['error' => $e->getMessage()]);
+                $results['backup'] = ['status' => 'error', 'message' => $e->getMessage()];
+            }
+        }
+
+        // 4. Clear expired sessions
         try {
             Artisan::call('session:gc');
             $results['session_cleanup'] = ['status' => 'success'];
@@ -136,6 +150,15 @@ class CronController extends Controller
                 $results = ['status' => 'success', 'message' => 'Views cleared'];
                 break;
 
+            case 'backup':
+                try {
+                    Artisan::call('backup:run');
+                    $results = ['status' => 'success', 'message' => 'Backup completed'];
+                } catch (\Exception $e) {
+                    $results = ['status' => 'error', 'message' => $e->getMessage()];
+                }
+                break;
+
             default:
                 return response()->json(['error' => 'Unknown job'], 400);
         }
@@ -154,6 +177,8 @@ class CronController extends Controller
             'last_email_fetch' => $settings->last_email_fetch_at?->toISOString(),
             'email_fetching_enabled' => $settings->email_fetching_enabled,
             'cache_cleanup' => cache('last_cache_cleanup')?->toISOString(),
+            'last_backup' => cache('last_backup_date')?->toISOString(),
+            'backup_days' => $settings->backup_days ?? 30,
         ]);
     }
 

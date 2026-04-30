@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CompanySetting;
+use App\Services\EnvService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -116,9 +117,31 @@ class SettingsController extends Controller
             'mail_encryption' => 'nullable|string|max:10',
             'mail_from_address' => 'nullable|email|max:255',
             'mail_from_name' => 'nullable|string|max:255',
+            
+            // Backup settings
+            'backup_days' => 'nullable|integer|min:1|max:365',
         ]);
 
         $validated['email_fetching_enabled'] = $request->boolean('email_fetching_enabled', false);
+
+        // Sync email settings with .env file
+        $envService = new EnvService();
+        $envService->setEmailSettings([
+            'imap_host' => $validated['imap_host'] ?? '',
+            'imap_port' => $validated['imap_port'] ?? '993',
+            'imap_username' => $validated['imap_username'] ?? '',
+            'imap_password' => $validated['imap_password'] ?? '',
+            'imap_encryption' => $validated['imap_encryption'] ?? 'ssl',
+            'imap_folder' => $validated['imap_folder'] ?? 'INBOX',
+            'mail_mailer' => $validated['mail_mailer'] ?? 'smtp',
+            'mail_host' => $validated['mail_host'] ?? '',
+            'mail_port' => $validated['mail_port'] ?? '587',
+            'mail_username' => $validated['mail_username'] ?? '',
+            'mail_password' => $validated['mail_password'] ?? '',
+            'mail_encryption' => $validated['mail_encryption'] ?? 'tls',
+            'mail_from_address' => $validated['mail_from_address'] ?? '',
+            'mail_from_name' => $validated['mail_from_name'] ?? config('app.name'),
+        ]);
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
