@@ -1585,10 +1585,29 @@
             </a>
 
             <span class="nav-label" style="margin-top: 1rem;">Configuration</span>
-            <a href="{{ route('admin.settings.index') }}" class="nav-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-                <span class="nav-icon">⚙️</span>
-                Company Settings
-            </a>
+            <div class="nav-group {{ request()->routeIs('admin.settings.*') ? 'expanded' : '' }}">
+                <a href="{{ route('admin.settings.company') }}" class="nav-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                    <span class="nav-icon">⚙️</span>
+                    Settings
+                </a>
+                <div class="sub-nav" style="{{ request()->routeIs('admin.settings.*') ? '' : 'display: none;' }}">
+                    <a href="{{ route('admin.settings.company') }}" class="nav-item {{ request()->routeIs('admin.settings.company') ? 'active' : '' }}" style="padding-left: 2.5rem; font-size: 0.8125rem;">
+                        <span class="nav-icon">🏢</span> Company
+                    </a>
+                    <a href="{{ route('admin.settings.tax') }}" class="nav-item {{ request()->routeIs('admin.settings.tax') ? 'active' : '' }}" style="padding-left: 2.5rem; font-size: 0.8125rem;">
+                        <span class="nav-icon">📋</span> Tax & GST
+                    </a>
+                    <a href="{{ route('admin.settings.invoice') }}" class="nav-item {{ request()->routeIs('admin.settings.invoice') ? 'active' : '' }}" style="padding-left: 2.5rem; font-size: 0.8125rem;">
+                        <span class="nav-icon">🧾</span> Invoice
+                    </a>
+                    <a href="{{ route('admin.settings.bank') }}" class="nav-item {{ request()->routeIs('admin.settings.bank') ? 'active' : '' }}" style="padding-left: 2.5rem; font-size: 0.8125rem;">
+                        <span class="nav-icon">🏦</span> Bank
+                    </a>
+                    <a href="{{ route('admin.settings.email') }}" class="nav-item {{ request()->routeIs('admin.settings.email') ? 'active' : '' }}" style="padding-left: 2.5rem; font-size: 0.8125rem;">
+                        <span class="nav-icon">📧</span> Email
+                    </a>
+                </div>
+            </div>
             <a href="{{ route('admin.cron.index') }}" class="nav-item {{ request()->routeIs('admin.cron.*') ? 'active' : '' }}">
                 <span class="nav-icon">⏰</span>
                 Cron Jobs

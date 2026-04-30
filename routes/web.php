@@ -83,8 +83,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/pos/history', [PosController::class, 'history'])->name('pos.history');
         Route::get('/pos/bill/{sale}', [PosController::class, 'bill'])->name('pos.bill');
 
-        // Company Settings
+        // Settings - Separate Pages
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::get('/settings/company', [SettingsController::class, 'company'])->name('settings.company');
+        Route::get('/settings/tax', [SettingsController::class, 'tax'])->name('settings.tax');
+        Route::get('/settings/invoice', [SettingsController::class, 'invoice'])->name('settings.invoice');
+        Route::get('/settings/bank', [SettingsController::class, 'bank'])->name('settings.bank');
+        Route::get('/settings/email', [SettingsController::class, 'email'])->name('settings.email');
         Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
         // Categories

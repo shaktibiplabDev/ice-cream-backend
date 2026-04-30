@@ -9,10 +9,45 @@ use Illuminate\Support\Facades\Storage;
 
 class SettingsController extends Controller
 {
-    public function index()
+    // Company Settings
+    public function company()
     {
         $settings = CompanySetting::getSettings();
-        return view('admin.settings.index', compact('settings'));
+        return view('admin.settings.company', compact('settings'));
+    }
+
+    // Tax & GST Settings
+    public function tax()
+    {
+        $settings = CompanySetting::getSettings();
+        return view('admin.settings.tax', compact('settings'));
+    }
+
+    // Invoice Settings
+    public function invoice()
+    {
+        $settings = CompanySetting::getSettings();
+        return view('admin.settings.invoice', compact('settings'));
+    }
+
+    // Bank Settings
+    public function bank()
+    {
+        $settings = CompanySetting::getSettings();
+        return view('admin.settings.bank', compact('settings'));
+    }
+
+    // Email Settings
+    public function email()
+    {
+        $settings = CompanySetting::getSettings();
+        return view('admin.settings.email', compact('settings'));
+    }
+
+    // Legacy redirect
+    public function index()
+    {
+        return redirect()->route('admin.settings.company');
     }
 
     public function update(Request $request)
