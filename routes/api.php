@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\PublicController;
+use App\Http\Controllers\Api\ProductsController;
 use Illuminate\Support\Facades\Route;
 
 // Public API Routes (No authentication required)
@@ -20,5 +21,10 @@ Route::prefix('v1')->group(function () {
     // Public endpoints for frontend
     Route::get('/distributors', [PublicController::class, 'distributors']);
     Route::post('/inquiries', [PublicController::class, 'submitInquiry']);
+
+    // Product endpoints
+    Route::get('/products', [ProductsController::class, 'index']);
+    Route::get('/products/{product}', [ProductsController::class, 'show']);
+    Route::get('/categories', [ProductsController::class, 'categories']);
 
 });

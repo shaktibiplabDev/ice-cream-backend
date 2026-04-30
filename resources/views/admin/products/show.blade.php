@@ -34,7 +34,7 @@
                         <div style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">{{ $product->name }}</div>
                         <div style="color: var(--text-muted); margin-bottom: 1rem;">{{ $product->category }} | {{ $product->size }}</div>
                         <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-primary-light);">
-                            ${{ number_format($product->price, 2) }} <small style="font-size: 0.75rem; color: var(--text-muted);">/ {{ $product->unit }}</small>
+                            {{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->price, 2) }} <small style="font-size: 0.75rem; color: var(--text-muted);">/ {{ $product->unit }}</small>
                         </div>
                     </div>
                 </div>

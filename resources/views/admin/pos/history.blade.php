@@ -42,7 +42,7 @@
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">{{ $sale->warehouse->code }}</div>
                             </td>
                             <td>{{ $sale->items->count() }}</td>
-                            <td style="font-weight: 600; color: #34d399;">₹{{ number_format($sale->total_amount, 2) }}</td>
+                            <td style="font-weight: 600; color: #34d399;">{{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($sale->total_amount, 2) }}</td>
                             <td>
                                 <span class="status-badge {{ $sale->payment_status === 'paid' ? 'status-active' : ($sale->payment_status === 'pending' ? 'status-inactive' : 'status-in-progress') }}">
                                     {{ ucfirst($sale->payment_status) }}

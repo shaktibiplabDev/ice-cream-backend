@@ -4,20 +4,23 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::latest()->paginate(20);
+        $products = Product::with('category')->latest()->paginate(20);
         return view('admin.products.index', compact('products'));
     }
 
     public function create()
     {
-        return view('admin.products.create');
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
+        return view('admin.products.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -26,9 +29,11 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'required|string|unique:products|max:50',
             'description' => 'nullable|string',
-            'category' => 'required|string|max:100',
+            'category_id' => 'nullable|exists:categories,id',
             'size' => 'required|string|max:50',
-            'price' => 'required|numeric|min:0',
+            'mrp_price' => 'required|numeric|min:0',
+            'distributor_price' => 'required|numeric|min:0',
+            'retailer_price' => 'required|numeric|min:0',
             'unit' => 'required|string|max:20',
             'image' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
@@ -55,7 +60,8 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product = Product::findOrFail($id);
-        return view('admin.products.edit', compact('product'));
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
+        return view('admin.products.edit', compact('product', 'categories'));
     }
 
     public function update(Request $request, $id)
@@ -66,9 +72,11 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'required|string|max:50|unique:products,sku,' . $id,
             'description' => 'nullable|string',
-            'category' => 'required|string|max:100',
+            'category_id' => 'nullable|exists:categories,id',
             'size' => 'required|string|max:50',
-            'price' => 'required|numeric|min:0',
+            'mrp_price' => 'required|numeric|min:0',
+            'distributor_price' => 'required|numeric|min:0',
+            'retailer_price' => 'required|numeric|min:0',
             'unit' => 'required|string|max:20',
             'image' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
@@ -78,6 +86,10 @@ class ProductController extends Controller
         $validated['is_active'] = $request->boolean('is_active', true);
 
         if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
@@ -89,6 +101,12 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
+        
+        // Delete image if exists
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
+        }
+        
         $product->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully');

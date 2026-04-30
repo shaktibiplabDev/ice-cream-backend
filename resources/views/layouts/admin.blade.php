@@ -26,6 +26,7 @@
         }
 
         :root {
+            /* Dark theme (default) */
             --bg-dark: #0a0c10;
             --bg-elevated: #111316;
             --bg-card: rgba(22, 26, 32, 0.8);
@@ -51,6 +52,73 @@
             --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
             --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
             --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.15);
+        }
+
+        /* Light theme */
+        [data-theme="light"] {
+            --bg-dark: #f5f5f5;
+            --bg-elevated: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --border-medium: rgba(0, 0, 0, 0.12);
+            --text-primary: #1a1a1a;
+            --text-secondary: rgba(0, 0, 0, 0.65);
+            --text-muted: rgba(0, 0, 0, 0.45);
+            --accent-primary: #4f46e5;
+            --accent-primary-light: #6366f1;
+            --accent-secondary: #a855f7;
+            --accent-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
+            --danger: #dc2626;
+            --success: #059669;
+            --warning: #d97706;
+            --info: #2563eb;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.1);
+        }
+
+        [data-theme="light"] .bg-orb {
+            opacity: 0.3;
+        }
+
+        [data-theme="light"] .grid-overlay {
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        }
+
+        [data-theme="light"] .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .sidebar {
+            background: rgba(255, 255, 255, 0.98);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .nav-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="light"] .nav-item.active {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--accent-primary);
+        }
+
+        [data-theme="light"] .topbar {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .form-input,
+        [data-theme="light"] .form-select,
+        [data-theme="light"] .form-textarea,
+        [data-theme="light"] .form-control {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: var(--text-primary);
         }
 
         body {
@@ -1490,10 +1558,40 @@
                 Add Warehouse
             </a>
 
+            <span class="nav-label" style="margin-top: 1rem;">Catalog</span>
+            <a href="{{ route('admin.categories.index') }}" class="nav-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                <span class="nav-icon">🏷️</span>
+                Categories
+            </a>
+
+            <span class="nav-label" style="margin-top: 1rem;">Email</span>
+            <a href="{{ route('admin.mail.inbox') }}" class="nav-item {{ request()->routeIs('admin.mail.inbox') ? 'active' : '' }}">
+                <span class="nav-icon">📧</span>
+                Inbox
+                @php
+                    $unreadCount = \App\Models\Email::inbox(auth('admin')->id())->unread()->count();
+                @endphp
+                @if($unreadCount > 0)
+                    <span class="nav-badge">{{ $unreadCount }}</span>
+                @endif
+            </a>
+            <a href="{{ route('admin.mail.compose') }}" class="nav-item {{ request()->routeIs('admin.mail.compose') ? 'active' : '' }}">
+                <span class="nav-icon">✉️</span>
+                Compose
+            </a>
+            <a href="{{ route('admin.mail.sent') }}" class="nav-item {{ request()->routeIs('admin.mail.sent') ? 'active' : '' }}">
+                <span class="nav-icon">📤</span>
+                Sent
+            </a>
+
             <span class="nav-label" style="margin-top: 1rem;">Configuration</span>
             <a href="{{ route('admin.settings.index') }}" class="nav-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                 <span class="nav-icon">⚙️</span>
                 Company Settings
+            </a>
+            <a href="#" class="nav-item" onclick="toggleTheme(event)">
+                <span class="nav-icon" id="theme-icon">🌙</span>
+                <span id="theme-text">Dark Mode</span>
             </a>
 
             <span class="nav-label" style="margin-top: 1rem;">External</span>
@@ -1569,6 +1667,41 @@
             @yield('content')
         </main>
     </div>
+
+    <script>
+        // Theme toggle functionality
+        function toggleTheme(e) {
+            if (e) e.preventDefault();
+
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('admin-theme', newTheme);
+            updateThemeUI(newTheme);
+        }
+
+        function updateThemeUI(theme) {
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+
+            if (theme === 'light') {
+                icon.textContent = '☀️';
+                text.textContent = 'Light Mode';
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'Dark Mode';
+            }
+        }
+
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('admin-theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+            updateThemeUI(savedTheme);
+        });
+    </script>
 
     @stack('scripts')
 </body>

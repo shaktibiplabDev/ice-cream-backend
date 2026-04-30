@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\PosController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\MailController;
 
 // Admin Authentication Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -83,6 +85,26 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Company Settings
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+        // Categories
+        Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+        Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
+        Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+        // Mail / Email
+        Route::get('/mail/inbox', [MailController::class, 'inbox'])->name('mail.inbox');
+        Route::get('/mail/sent', [MailController::class, 'sent'])->name('mail.sent');
+        Route::get('/mail/drafts', [MailController::class, 'drafts'])->name('mail.drafts');
+        Route::get('/mail/starred', [MailController::class, 'starred'])->name('mail.starred');
+        Route::get('/mail/compose', [MailController::class, 'compose'])->name('mail.compose');
+        Route::post('/mail', [MailController::class, 'store'])->name('mail.store');
+        Route::get('/mail/{email}', [MailController::class, 'show'])->name('mail.show');
+        Route::delete('/mail/{email}', [MailController::class, 'destroy'])->name('mail.destroy');
+        Route::post('/mail/{email}/star', [MailController::class, 'toggleStar'])->name('mail.star');
+        Route::post('/mail/{email}/important', [MailController::class, 'toggleImportant'])->name('mail.important');
     });
 });
 

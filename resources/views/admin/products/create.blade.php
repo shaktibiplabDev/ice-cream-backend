@@ -43,17 +43,17 @@
                 <div class="form-field">
                     <label class="form-label">
                         Category
-                        <span class="required-label">Required</span>
+                        <span class="optional-label">Optional</span>
                     </label>
-                    <select name="category" class="form-select" required>
+                    <select name="category_id" class="form-select">
                         <option value="">Select Category</option>
-                        <option value="Ice Cream" {{ old('category') == 'Ice Cream' ? 'selected' : '' }}>Ice Cream</option>
-                        <option value="Frozen Desserts" {{ old('category') == 'Frozen Desserts' ? 'selected' : '' }}>Frozen Desserts</option>
-                        <option value="Sorbet" {{ old('category') == 'Sorbet' ? 'selected' : '' }}>Sorbet</option>
-                        <option value="Gelato" {{ old('category') == 'Gelato' ? 'selected' : '' }}>Gelato</option>
-                        <option value="Frozen Yogurt" {{ old('category') == 'Frozen Yogurt' ? 'selected' : '' }}>Frozen Yogurt</option>
+                        @foreach($categories ?? [] as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                {{ $category->icon ?? '🏷️' }} {{ $category->name }}
+                            </option>
+                        @endforeach
                     </select>
-                    @error('category')<span class="form-error">{{ $message }}</span>@enderror
+                    @error('category_id')<span class="form-error">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="form-field">
@@ -67,11 +67,29 @@
 
                 <div class="form-field">
                     <label class="form-label">
-                        Price
+                        MRP Price (Customer)
                         <span class="required-label">Required</span>
                     </label>
-                    <input type="number" name="price" class="form-input" value="{{ old('price') }}" step="0.01" min="0" required>
-                    @error('price')<span class="form-error">{{ $message }}</span>@enderror
+                    <input type="number" name="mrp_price" class="form-input" value="{{ old('mrp_price') }}" step="0.01" min="0" required>
+                    @error('mrp_price')<span class="form-error">{{ $message }}</span>@enderror
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label">
+                        Distributor Price
+                        <span class="required-label">Required</span>
+                    </label>
+                    <input type="number" name="distributor_price" class="form-input" value="{{ old('distributor_price') }}" step="0.01" min="0" required>
+                    @error('distributor_price')<span class="form-error">{{ $message }}</span>@enderror
+                </div>
+
+                <div class="form-field">
+                    <label class="form-label">
+                        Retailer Price
+                        <span class="required-label">Required</span>
+                    </label>
+                    <input type="number" name="retailer_price" class="form-input" value="{{ old('retailer_price') }}" step="0.01" min="0" required>
+                    @error('retailer_price')<span class="form-error">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="form-field">

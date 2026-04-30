@@ -61,7 +61,7 @@
                         </td>
                         <td>{{ $product->sku }}</td>
                         <td>{{ $product->category }}</td>
-                        <td>${{ number_format($product->price, 2) }} / {{ $product->unit }}</td>
+                        <td>{{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->price, 2) }} / {{ $product->unit }}</td>
                         <td>
                             <span class="status-badge {{ $product->is_active ? 'status-active' : 'status-inactive' }}">
                                 {{ $product->is_active ? 'Active' : 'Inactive' }}

@@ -133,7 +133,7 @@
                                 <div style="font-size: 2rem; margin-bottom: 0.5rem; text-align: center;">📦</div>
                                 <div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $product->name }}</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">{{ $product->unit }}</div>
-                                <div style="font-size: 0.9375rem; font-weight: 600; color: #34d399;">₹{{ number_format($product->price, 2) }}</div>
+                                <div style="font-size: 0.9375rem; font-weight: 600; color: #34d399;">{{ $companySettings->currency_symbol }}{{ number_format($product->price, 2) }}</div>
                                 <div class="stock-status" data-product-id="{{ $product->id }}" style="font-size: 0.6875rem; margin-top: 0.5rem; color: var(--text-muted);">
                                     Select warehouse to check stock
                                 </div>
