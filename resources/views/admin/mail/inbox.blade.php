@@ -3,271 +3,351 @@
 @section('title', 'Inbox')
 
 @section('content')
-    <div class="mail-app">
+    <div class="gmail-container">
         <!-- Toolbar -->
-        <div class="mail-toolbar">
+        <div class="gmail-toolbar">
             <div class="toolbar-left">
-                <a href="{{ route('admin.mail.compose') }}" class="btn-compose">
-                    <span>✉️</span> Compose
+                <a href="{{ route('admin.mail.compose') }}" class="btn-compose-gmail">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Compose
                 </a>
             </div>
+            <div class="toolbar-center">
+                <span class="emails-count">{{ $unreadCount }} new</span>
+            </div>
             <div class="toolbar-right">
-                <span class="unread-count">{{ $unreadCount }} unread</span>
+                {{ $emails->links('pagination::simple-tailwind') }}
             </div>
         </div>
 
-        <div class="mail-layout">
+        <div class="gmail-layout">
             <!-- Sidebar -->
-            <div class="mail-sidebar">
-                <a href="{{ route('admin.mail.inbox') }}" class="nav-item active">
-                    <span class="nav-icon">📧</span>
-                    <span class="nav-label">Inbox</span>
-                    @if($unreadCount > 0)
-                        <span class="nav-badge">{{ $unreadCount }}</span>
-                    @endif
-                </a>
-                <a href="{{ route('admin.mail.starred') }}" class="nav-item">
-                    <span class="nav-icon">⭐</span>
-                    <span class="nav-label">Starred</span>
-                </a>
-                <a href="{{ route('admin.mail.sent') }}" class="nav-item">
-                    <span class="nav-icon">📤</span>
-                    <span class="nav-label">Sent</span>
-                </a>
-                <a href="{{ route('admin.mail.drafts') }}" class="nav-item">
-                    <span class="nav-icon">📝</span>
-                    <span class="nav-label">Drafts</span>
-                </a>
-            </div>
+            <aside class="gmail-sidebar">
+                <nav class="sidebar-nav">
+                    <a href="{{ route('admin.mail.inbox') }}" class="nav-item {{ request()->routeIs('admin.mail.inbox') ? 'active' : '' }}">
+                        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                        <span class="nav-label">Inbox</span>
+                        @if($unreadCount > 0)
+                            <span class="nav-count">{{ $unreadCount }}</span>
+                        @endif
+                    </a>
+                    
+                    <a href="{{ route('admin.mail.starred') }}" class="nav-item {{ request()->routeIs('admin.mail.starred') ? 'active' : '' }}">
+                        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                        </svg>
+                        <span class="nav-label">Starred</span>
+                    </a>
+                    
+                    <a href="{{ route('admin.mail.sent') }}" class="nav-item {{ request()->routeIs('admin.mail.sent') ? 'active' : '' }}">
+                        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                        <span class="nav-label">Sent</span>
+                    </a>
+                    
+                    <a href="{{ route('admin.mail.drafts') }}" class="nav-item {{ request()->routeIs('admin.mail.drafts') ? 'active' : '' }}">
+                        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                        <span class="nav-label">Drafts</span>
+                    </a>
+                </nav>
+            </aside>
 
-            <!-- Email List -->
-            <div class="email-list-container">
+            <!-- Main Content -->
+            <main class="gmail-main">
                 @if($emails->count() > 0)
-                    <div class="email-list">
-                        @foreach($emails as $email)
-                            <div class="email-row {{ !$email->is_read ? 'unread' : '' }}">
-                                <div class="row-actions">
-                                    <button class="star-btn" onclick="event.stopPropagation(); toggleStar(this, '{{ $email->id }}')" data-id="{{ $email->id }}" type="button">
-                                        {{ $email->is_starred ? '⭐' : '☆' }}
-                                    </button>
-                                </div>
-                                <a href="{{ route('admin.mail.show', $email) }}" class="row-content">
-                                    <div class="sender-col">
-                                        <span class="sender-name">{{ $email->from_name }}</span>
-                                    </div>
-                                    <div class="message-col">
-                                        <span class="subject">{{ $email->subject ?: '(No Subject)' }}</span>
-                                        <span class="preview"> — {{ $email->getExcerpt(80) }}</span>
-                                    </div>
-                                    <div class="date-col">
-                                        <span class="date">{{ $email->sent_at?->format('M j') ?? 'Draft' }}</span>
-                                    </div>
-                                </a>
+                    <div class="email-table">
+                        <div class="email-table-header">
+                            <div class="col-checkbox">
+                                <input type="checkbox" class="checkbox-all">
                             </div>
-                        @endforeach
+                            <div class="col-star"></div>
+                            <div class="col-sender">From</div>
+                            <div class="col-content">Subject</div>
+                            <div class="col-date">Date</div>
+                        </div>
+
+                        <div class="email-list-gmail">
+                            @foreach($emails as $email)
+                                <div class="email-row-gmail {{ !$email->is_read ? 'unread' : '' }}" onclick="window.location='{{ route('admin.mail.show', $email) }}'">
+                                    <div class="col-checkbox" onclick="event.stopPropagation()">
+                                        <input type="checkbox" class="email-checkbox">
+                                    </div>
+                                    <div class="col-star" onclick="event.stopPropagation(); toggleStar(this, '{{ $email->id }}')" role="button">
+                                        <svg class="star-icon {{ $email->is_starred ? 'starred' : '' }}" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="col-sender">
+                                        <span class="sender-text">{{ $email->from_name }}</span>
+                                    </div>
+                                    <div class="col-content">
+                                        <span class="subject-text">{{ $email->subject ?: '(No Subject)' }}</span>
+                                        <span class="body-preview">{{ $email->getExcerpt(60) }}</span>
+                                    </div>
+                                    <div class="col-date">
+                                        <span class="date-text">{{ $email->sent_at?->format('M j') ?? 'Draft' }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                     
-                    <div class="pagination-container">
+                    <div class="pagination-gmail">
                         {{ $emails->links() }}
                     </div>
                 @else
-                    <div class="empty-state">
-                        <div class="empty-icon">📧</div>
-                        <h3>Your inbox is empty</h3>
-                        <p>No emails to show. When emails arrive, they'll appear here.</p>
-                        <a href="{{ route('admin.mail.compose') }}" class="btn-compose" style="margin-top: 1rem;">Send Email</a>
+                    <div class="empty-gmail">
+                        <div class="empty-icon-gmail">
+                            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                        </div>
+                        <h3>No messages to show</h3>
+                        <p>Your inbox is empty. When you receive emails, they will appear here.</p>
+                        <a href="{{ route('admin.mail.compose') }}" class="btn-compose-gmail" style="margin-top: 1.5rem;">
+                            Send an email
+                        </a>
                     </div>
                 @endif
-            </div>
+            </main>
         </div>
     </div>
 
     <style>
-        .mail-app {
+        .gmail-container {
             display: flex;
             flex-direction: column;
             height: calc(100vh - 140px);
             background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
             overflow: hidden;
         }
 
-        .mail-toolbar {
+        .gmail-toolbar {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 1rem 1.5rem;
+            justify-content: space-between;
+            padding: 12px 24px;
             border-bottom: 1px solid var(--border-subtle);
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .btn-compose {
+        .toolbar-left {
+            min-width: 180px;
+        }
+
+        .btn-compose-gmail {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.625rem 1.25rem;
-            background: var(--accent-gradient);
-            color: white;
+            gap: 10px;
+            padding: 10px 24px;
+            background: #c2e7ff;
+            color: #001d35;
             text-decoration: none;
-            border-radius: var(--radius-md);
+            border-radius: 16px;
             font-weight: 500;
-            font-size: 0.875rem;
+            font-size: 14px;
             transition: all 0.2s;
             border: none;
-            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
-        .btn-compose:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+        .btn-compose-gmail:hover {
+            background: #b4dbfa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
-        .unread-count {
-            font-size: 0.875rem;
+        .btn-compose-gmail svg {
+            color: #001d35;
+        }
+
+        .toolbar-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .emails-count {
+            font-size: 14px;
             color: var(--text-muted);
         }
 
-        .mail-layout {
+        .toolbar-right {
+            min-width: 180px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .gmail-layout {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
 
-        .mail-sidebar {
-            width: 220px;
+        .gmail-sidebar {
+            width: 256px;
             flex-shrink: 0;
-            padding: 1rem;
+            padding: 8px 12px;
             border-right: 1px solid var(--border-subtle);
             overflow-y: auto;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
-            gap: 0.875rem;
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-md);
+            gap: 14px;
+            padding: 8px 16px;
+            border-radius: 0 16px 16px 0;
             color: var(--text-secondary);
             text-decoration: none;
+            font-size: 14px;
             transition: all 0.15s;
-            margin-bottom: 0.25rem;
         }
 
         .nav-item:hover {
             background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
         }
 
         .nav-item.active {
-            background: rgba(79, 70, 229, 0.15);
-            color: var(--accent-primary);
+            background: #d3e3fd;
+            color: #001d35;
             font-weight: 500;
         }
 
         .nav-icon {
-            font-size: 1.125rem;
-            width: 24px;
-            text-align: center;
+            flex-shrink: 0;
+            opacity: 0.7;
         }
 
         .nav-label {
             flex: 1;
-            font-size: 0.875rem;
         }
 
-        .nav-badge {
+        .nav-count {
             background: var(--accent-primary);
             color: white;
-            padding: 0.125rem 0.625rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
             font-weight: 600;
         }
 
-        .email-list-container {
+        .gmail-main {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        .email-list {
+        .email-table {
             flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            min-height: 200px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        .email-row {
+        .email-table-header {
             display: flex;
             align-items: center;
-            min-height: 56px;
+            padding: 8px 16px;
             border-bottom: 1px solid var(--border-subtle);
-            transition: all 0.15s;
+            background: rgba(255, 255, 255, 0.02);
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .email-list-gmail {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .email-row-gmail {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-subtle);
             cursor: pointer;
-            background: transparent;
+            font-size: 14px;
+            transition: all 0.15s;
         }
 
-        .email-row:nth-child(even) {
-            background: rgba(255, 255, 255, 0.01);
+        .email-row-gmail:hover {
+            box-shadow: inset 0 -1px 0 0 var(--border-subtle), inset 0 1px 0 0 var(--border-subtle);
+            z-index: 1;
+            position: relative;
         }
 
-        .email-row:hover {
-            background: rgba(255, 255, 255, 0.03);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        .email-row-gmail.unread {
+            background: #f2f6fc;
         }
 
-        .email-row.unread {
-            background: rgba(79, 70, 229, 0.04);
-        }
-
-        .email-row.unread .sender-name,
-        .email-row.unread .subject {
+        .email-row-gmail.unread .sender-text,
+        .email-row-gmail.unread .subject-text {
             font-weight: 600;
             color: var(--text-primary);
         }
 
-        .row-actions {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 0.5rem;
+        .col-checkbox {
+            width: 32px;
             flex-shrink: 0;
         }
 
-        .star-btn {
-            background: none;
-            border: none;
-            font-size: 1.125rem;
+        .email-checkbox {
+            width: 18px;
+            height: 18px;
             cursor: pointer;
-            padding: 0.25rem;
-            color: #fbbf24;
-            opacity: 0.6;
-            transition: all 0.15s;
+            accent-color: var(--accent-primary);
         }
 
-        .star-btn:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .row-content {
-            flex: 1;
+        .col-star {
+            width: 36px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
-            padding: 0.875rem 1rem;
-            text-decoration: none;
-            color: inherit;
-            gap: 1rem;
+            justify-content: center;
         }
 
-        .sender-col {
-            width: 180px;
+        .star-icon {
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            opacity: 0.5;
+        }
+
+        .star-icon:hover {
+            opacity: 1;
+            color: #fbbc04;
+        }
+
+        .star-icon.starred {
+            color: #fbbc04;
+            opacity: 1;
+        }
+
+        .col-sender {
+            width: 200px;
             flex-shrink: 0;
+            padding-right: 16px;
         }
 
-        .sender-name {
-            font-size: 0.875rem;
+        .sender-text {
             color: var(--text-secondary);
             white-space: nowrap;
             overflow: hidden;
@@ -275,24 +355,22 @@
             display: block;
         }
 
-        .message-col {
+        .col-content {
             flex: 1;
             min-width: 0;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
-        .subject {
-            font-size: 0.875rem;
+        .subject-text {
             color: var(--text-secondary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .preview {
-            font-size: 0.8125rem;
+        .body-preview {
             color: var(--text-muted);
             white-space: nowrap;
             overflow: hidden;
@@ -300,70 +378,70 @@
             flex: 1;
         }
 
-        .date-col {
-            width: 70px;
+        .col-date {
+            width: 80px;
             flex-shrink: 0;
             text-align: right;
         }
 
-        .date {
-            font-size: 0.75rem;
+        .date-text {
             color: var(--text-muted);
-            white-space: nowrap;
+            font-size: 13px;
         }
 
-        .pagination-container {
-            padding: 0.75rem 1rem;
+        .pagination-gmail {
+            padding: 12px 24px;
             border-top: 1px solid var(--border-subtle);
-            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            justify-content: center;
         }
 
-        .empty-state {
+        .empty-gmail {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 3rem;
+            padding: 48px;
         }
 
-        .empty-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .empty-state h3 {
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-            font-size: 0.875rem;
+        .empty-icon-gmail {
             color: var(--text-muted);
-            max-width: 300px;
+            opacity: 0.3;
+            margin-bottom: 24px;
+        }
+
+        .empty-gmail h3 {
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-gmail p {
+            font-size: 14px;
+            color: var(--text-muted);
+            max-width: 400px;
         }
 
         @media (max-width: 768px) {
-            .mail-sidebar {
+            .gmail-sidebar {
                 display: none;
             }
-
-            .sender-col {
-                width: 120px;
+            
+            .col-sender {
+                width: 140px;
             }
-
-            .preview {
+            
+            .body-preview {
                 display: none;
             }
         }
     </style>
 
     <script>
-        function toggleStar(btn, emailId) {
+        function toggleStar(el, emailId) {
             fetch(`/admin/mail/${emailId}/star`, {
                 method: 'POST',
                 headers: {
@@ -373,8 +451,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                btn.textContent = data.is_starred ? '⭐' : '☆';
-                btn.style.opacity = data.is_starred ? '1' : '0.6';
+                el.querySelector('.star-icon').classList.toggle('starred', data.is_starred);
             })
             .catch(err => console.error('Error:', err));
         }

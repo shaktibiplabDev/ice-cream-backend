@@ -189,10 +189,6 @@ class MailController extends Controller
 
     public function toggleStar(Email $email)
     {
-        if ($email->created_by !== auth('admin')->id()) {
-            abort(403);
-        }
-
         $email->update(['is_starred' => !$email->is_starred]);
 
         return response()->json([
@@ -203,10 +199,6 @@ class MailController extends Controller
 
     public function toggleImportant(Email $email)
     {
-        if ($email->created_by !== auth('admin')->id()) {
-            abort(403);
-        }
-
         $email->update(['is_important' => !$email->is_important]);
 
         return response()->json([
@@ -225,10 +217,6 @@ class MailController extends Controller
      */
     public function reply(Email $email)
     {
-        if ($email->created_by !== auth('admin')->id()) {
-            abort(403);
-        }
-
         $settings = CompanySetting::getSettings();
         
         // Check if this email is linked to an inquiry
@@ -242,10 +230,6 @@ class MailController extends Controller
      */
     public function sendReply(Request $request, Email $email)
     {
-        if ($email->created_by !== auth('admin')->id()) {
-            abort(403);
-        }
-
         $validated = $request->validate([
             'subject' => 'required|string|max:255',
             'body' => 'required|string',
