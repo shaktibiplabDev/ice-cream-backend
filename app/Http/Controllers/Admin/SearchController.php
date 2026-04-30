@@ -45,10 +45,10 @@ class SearchController extends Controller
         // Search distributors
         $distributors = Distributor::where(function($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('business_name', 'like', "%{$query}%")
+                  ->orWhere('contact_person', 'like', "%{$query}%")
                   ->orWhere('email', 'like', "%{$query}%")
                   ->orWhere('phone', 'like', "%{$query}%")
-                  ->orWhere('city', 'like', "%{$query}%");
+                  ->orWhere('address', 'like', "%{$query}%");
             })
             ->limit(5)
             ->get();
@@ -57,7 +57,7 @@ class SearchController extends Controller
             $results[] = [
                 'type' => 'Distributor',
                 'title' => $distributor->name,
-                'subtitle' => $distributor->business_name ?? 'No business name',
+                'subtitle' => $distributor->contact_person ?? 'No contact person',
                 'status' => $distributor->is_active ? 'Active' : 'Inactive',
                 'url' => route('admin.distributors.show', $distributor->id),
                 'date' => $distributor->created_at,

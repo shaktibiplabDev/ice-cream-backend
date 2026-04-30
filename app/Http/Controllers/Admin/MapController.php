@@ -13,7 +13,7 @@ class MapController extends Controller
     public function index()
     {
         // Get all distributors with coordinates
-        $distributors = Distributor::select(['id', 'name', 'latitude', 'longitude', 'address', 'city', 'state', 'phone', 'email'])
+        $distributors = Distributor::select(['id', 'name', 'contact_person', 'latitude', 'longitude', 'address', 'phone', 'email', 'is_active'])
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->where('is_active', true)
@@ -81,12 +81,10 @@ class MapController extends Controller
             return [
                 'id' => $distributor->id,
                 'name' => $distributor->name,
-                'business_name' => $distributor->business_name,
+                'contact_person' => $distributor->contact_person,
                 'latitude' => $distributor->latitude,
                 'longitude' => $distributor->longitude,
                 'address' => $distributor->address,
-                'city' => $distributor->city,
-                'state' => $distributor->state,
                 'phone' => $distributor->phone,
                 'email' => $distributor->email,
                 'type' => 'distributor',

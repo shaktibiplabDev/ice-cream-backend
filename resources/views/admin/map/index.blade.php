@@ -411,15 +411,15 @@
                     <div class="popup-icon distributor">🚚</div>
                     <div class="popup-title">
                         <h3>${escapeHtml(distributor.name)}</h3>
-                        <span>${escapeHtml(distributor.business_name || 'Distributor')}</span>
+                        <span>${escapeHtml(distributor.contact_person || 'Distributor')}</span>
                     </div>
                 </div>
                 <div class="popup-body">
                     <div class="popup-row">
-                        <span class="label">📍 Location</span>
+                        <span class="label">📍 Address</span>
                     </div>
                     <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                        ${escapeHtml(distributor.city || 'N/A')}, ${escapeHtml(distributor.state || 'N/A')}
+                        ${escapeHtml(distributor.address || 'Address not available')}
                     </div>
                     ${distributor.phone ? `
                     <div class="popup-row">
