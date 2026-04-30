@@ -14,7 +14,7 @@
         @csrf
         @method('PUT')
 
-        <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+        <div class="settings-grid">
             
             <!-- Company Information -->
             <div class="glass-card">
@@ -228,21 +228,17 @@
 
     <style>
         .settings-form {
-            margin-bottom: 80px;
+            margin-bottom: 100px;
         }
-        .form-group {
-            margin-bottom: 1rem;
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
         }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.375rem;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-        .form-group small {
-            display: block;
-            margin-top: 0.25rem;
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 @endsection
