@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\InventoryController;
 use Illuminate\Support\Facades\Route;
 
 // Public API Routes (No authentication required)
+// HandleCors middleware in bootstrap/app.php handles all CORS preflight
 Route::prefix('v1')->group(function () {
 
     // Health check - test if API is reachable

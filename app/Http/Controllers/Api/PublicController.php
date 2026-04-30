@@ -28,7 +28,7 @@ class PublicController extends Controller
                 'longitude'
             )
             ->get();
-        
+
         return response()->json([
             'success' => true,
             'data' => $distributors
