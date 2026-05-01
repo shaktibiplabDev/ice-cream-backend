@@ -223,7 +223,56 @@
         <!-- Amount in Words -->
         <div class="amount-words">
             <strong>Amount in Words:</strong>
-            {{ number_to_words($sale->total_amount) }} Only
+            @php
+                if (!function_exists('number_to_words')) {
+                    // Inline fallback if helpers not loaded
+                    $amount = $sale->total_amount;
+                    $whole = (int) floor($amount);
+                    $decimal = (int) round(($amount - $whole) * 100);
+                    $ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+                    $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+                    function ntw_chunk($num, $onesArr, $tensArr) {
+                        $result = '';
+                        if ($num >= 100) {
+                            $result .= $onesArr[(int)floor($num / 100)] . ' Hundred';
+                            $num %= 100;
+                            if ($num > 0) $result .= ' and ';
+                        }
+                        if ($num >= 20) {
+                            $result .= $tensArr[(int)floor($num / 10)];
+                            $num %= 10;
+                            if ($num > 0) $result .= ' ' . $onesArr[$num];
+                        } elseif ($num > 0) {
+                            $result .= $onesArr[$num];
+                        }
+                        return trim($result);
+                    }
+                    $parts = [];
+                    $temp = $whole;
+                    if ($temp >= 10000000) {
+                        $parts[] = ntw_chunk((int)floor($temp / 10000000), $ones, $tens) . ' Crore';
+                        $temp %= 10000000;
+                    }
+                    if ($temp >= 100000) {
+                        $parts[] = ntw_chunk((int)floor($temp / 100000), $ones, $tens) . ' Lakh';
+                        $temp %= 100000;
+                    }
+                    if ($temp >= 1000) {
+                        $parts[] = ntw_chunk((int)floor($temp / 1000), $ones, $tens) . ' Thousand';
+                        $temp %= 1000;
+                    }
+                    if ($temp > 0) {
+                        $parts[] = ntw_chunk($temp, $ones, $tens);
+                    }
+                    $result = empty($parts) ? 'Zero' : implode(' ', array_filter($parts));
+                    if ($decimal > 0) {
+                        $result .= ' and ' . ntw_chunk($decimal, $ones, $tens) . ' Paise';
+                    }
+                    echo $result;
+                } else {
+                    echo number_to_words($sale->total_amount);
+                }
+            @endphp Only
         </div>
 
         <!-- Payment Status -->
