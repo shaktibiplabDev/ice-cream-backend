@@ -56,7 +56,7 @@
                 </div>
 
                 <!-- Cart Items -->
-                <div style="padding: 1rem 1.25rem; flex: 1; overflow-y: auto;">
+                <div style="padding: 1rem 1.25rem; flex: 1; overflow-y: auto; min-height: 300px;">
                     <div id="empty-cart" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
                         <div style="font-size: 3rem; margin-bottom: 1rem;">🛒</div>
                         <p>Your cart is empty</p>
@@ -140,7 +140,13 @@
                 <div style="flex: 1; overflow-y: auto; padding: 1rem;">
                     <div id="products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem;">
                         @foreach($products as $product)
-                            <div class="product-card" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->distributor_price }}" data-mrp="{{ $product->mrp_price }}" data-unit="{{ $product->unit }}" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: all 0.2s;">
+                            <div class="product-card" 
+                                 data-id="{{ $product->id }}" 
+                                 data-name="{{ $product->name }}" 
+                                 data-price="{{ $product->distributor_price }}" 
+                                 data-mrp="{{ $product->mrp_price }}" 
+                                 data-unit="{{ $product->unit }}"
+                                 style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: all 0.2s;">
                                 @if($product->image)
                                     <div style="width: 100%; height: 80px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
                                         <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" style="max-width: 100%; max-height: 80px; object-fit: contain; border-radius: var(--radius-sm);">
@@ -238,62 +244,197 @@
     .pos-layout {
         margin-bottom: 80px;
     }
+    
+    .product-card {
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .product-card:active {
+        transform: scale(0.98);
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
+    // Global variables
     let cart = [];
     let warehouses = @json($warehouses);
     let products = @json($products);
+    let distributors = @json($distributors);
     let companySettings = @json($companySettings);
 
-    // Distributor selection change
-    document.getElementById('distributor-select').addEventListener('change', function() {
-        const distributorId = this.value;
-        const selectedOption = this.options[this.selectedIndex];
-
-        if (!distributorId) {
-            document.getElementById('distributor-info').style.display = 'none';
-            resetProductPrices();
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('POS System Initialized');
+        console.log('Products loaded:', products.length);
+        
+        initializeEventListeners();
+        initializeProductClickHandlers();
+    });
+    
+    function initializeProductClickHandlers() {
+        const productsGrid = document.getElementById('products-grid');
+        
+        if (!productsGrid) {
+            console.error('Products grid not found');
             return;
         }
+        
+        // Use event delegation for product cards
+        productsGrid.addEventListener('click', function(e) {
+            // Find the closest product-card element
+            const productCard = e.target.closest('.product-card');
+            if (!productCard) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Get product data from data attributes
+            const productId = parseInt(productCard.dataset.id);
+            const productName = productCard.dataset.name;
+            const productPrice = parseFloat(productCard.dataset.price);
+            
+            console.log('Product clicked:', {productId, productName, productPrice});
+            
+            // Validate data
+            if (!productId || isNaN(productPrice)) {
+                console.error('Invalid product data', productCard.dataset);
+                alert('Invalid product data');
+                return;
+            }
+            
+            // Check if warehouse is selected
+            const warehouseId = document.getElementById('warehouse-select').value;
+            if (!warehouseId) {
+                alert('Please select a warehouse first');
+                return;
+            }
+            
+            // Check stock before adding to cart
+            checkStockAndAddToCart(productId, productName, productPrice, productCard);
+        });
+    }
+    
+    function initializeEventListeners() {
+        // Distributor selection change
+        document.getElementById('distributor-select').addEventListener('change', function() {
+            const distributorId = this.value;
+            const selectedOption = this.options[this.selectedIndex];
 
-        // Show distributor info
-        const lat = selectedOption.dataset.lat;
-        const lng = selectedOption.dataset.lng;
-        document.getElementById('distributor-location').textContent = lat && lng ? 'Location available' : 'No location data';
-        document.getElementById('distributor-info').style.display = 'block';
+            if (!distributorId) {
+                document.getElementById('distributor-info').style.display = 'none';
+                resetProductPrices();
+                updateCheckoutButton();
+                return;
+            }
 
-        // Find nearest warehouse
-        if (lat && lng) {
-            fetchNearestWarehouse(distributorId);
+            // Show distributor info
+            const lat = selectedOption.dataset.lat;
+            const lng = selectedOption.dataset.lng;
+            document.getElementById('distributor-location').textContent = lat && lng ? 'Location available' : 'No location data';
+            document.getElementById('distributor-info').style.display = 'block';
+
+            // Find nearest warehouse
+            if (lat && lng) {
+                fetchNearestWarehouse(distributorId);
+            }
+
+            // Update product prices based on distributor discount
+            updateProductPrices(distributorId);
+            updateCheckoutButton();
+            renderCart(); // Re-render cart to update discounts
+        });
+
+        // Warehouse selection change
+        document.getElementById('warehouse-select').addEventListener('change', function() {
+            const warehouseId = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+
+            if (!warehouseId) {
+                document.getElementById('warehouse-info').style.display = 'none';
+                updateCheckoutButton();
+                return;
+            }
+
+            // Show warehouse info
+            document.getElementById('warehouse-address').textContent = selectedOption.text;
+            document.getElementById('warehouse-info').style.display = 'block';
+
+            // Update stock status for all products
+            updateAllStockStatuses();
+            updateCheckoutButton();
+        });
+
+        // Product search
+        document.getElementById('product-search').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+
+            document.querySelectorAll('.product-card').forEach(card => {
+                const name = card.dataset.name.toLowerCase();
+                card.style.display = name.includes(query) ? 'block' : 'none';
+            });
+        });
+
+        // Checkout button
+        document.getElementById('checkout-btn').addEventListener('click', function() {
+            if (this.disabled) return;
+            processCheckout();
+        });
+    }
+    
+    function checkStockAndAddToCart(productId, productName, productPrice, productCard) {
+        const warehouseId = document.getElementById('warehouse-select').value;
+        const distributorId = document.getElementById('distributor-select').value;
+        
+        let url = '{{ route('admin.pos.check-inventory') }}?product_id=' + productId + '&warehouse_id=' + warehouseId;
+        if (distributorId) {
+            url += '&distributor_id=' + distributorId;
         }
-
-        // Update product prices based on distributor discount
-        updateProductPrices(distributorId);
-        updateCheckoutButton();
-    });
-
-    // Warehouse selection change
-    document.getElementById('warehouse-select').addEventListener('change', function() {
-        const warehouseId = this.value;
-        const selectedOption = this.options[this.selectedIndex];
-
-        if (!warehouseId) {
-            document.getElementById('warehouse-info').style.display = 'none';
-            return;
+        
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.available_for_sale > 0) {
+                    // Add to cart
+                    addToCart(productId, productName, productPrice);
+                    
+                    // Visual feedback
+                    productCard.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        productCard.style.transform = '';
+                    }, 200);
+                } else {
+                    alert('Product is out of stock');
+                }
+            })
+            .catch(error => {
+                console.error('Stock check failed:', error);
+                alert('Unable to check stock. Please try again.');
+            });
+    }
+    
+    function addToCart(productId, productName, productPrice) {
+        const existingItem = cart.find(item => item.product_id === productId);
+        
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({
+                product_id: productId,
+                name: productName,
+                unit_price: productPrice,
+                quantity: 1,
+                discount_percent: 0,
+                tax_percent: 0,
+            });
         }
-
-        // Show warehouse info
-        document.getElementById('warehouse-address').textContent = selectedOption.text;
-        document.getElementById('warehouse-info').style.display = 'block';
-
-        // Update stock status for all products
-        updateAllStockStatuses();
+        
+        renderCart();
         updateCheckoutButton();
-    });
-
+    }
+    
     // Fetch nearest warehouse
     function fetchNearestWarehouse(distributorId) {
         fetch('{{ route('admin.pos.nearest-warehouse') }}?distributor_id=' + distributorId)
@@ -314,7 +455,8 @@
                     updateAllStockStatuses();
                     updateCheckoutButton();
                 }
-            });
+            })
+            .catch(error => console.error('Error fetching nearest warehouse:', error));
     }
 
     // Update stock status for all products
@@ -341,21 +483,23 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.available_for_sale > 0) {
-                        el.textContent = 'Stock: ' + data.available_for_sale;
+                        el.textContent = 'Stock: ' + data.available_for_sale + ' units';
                         el.style.color = '#34d399';
                     } else {
                         el.textContent = 'Out of stock';
                         el.style.color = '#f87171';
                     }
+                })
+                .catch(error => {
+                    console.error('Error checking stock:', error);
+                    el.textContent = 'Stock check failed';
+                    el.style.color = '#f87171';
                 });
         });
     }
 
     // Update product prices based on distributor discount
     function updateProductPrices(distributorId) {
-        const distributorSelect = document.getElementById('distributor-select');
-        const selectedOption = distributorSelect.options[distributorSelect.selectedIndex];
-        const distributors = @json($distributors);
         const distributor = distributors.find(d => d.id == distributorId);
 
         document.querySelectorAll('.product-card').forEach(card => {
@@ -384,53 +528,16 @@
     // Reset product prices to default
     function resetProductPrices() {
         document.querySelectorAll('.product-card').forEach(card => {
-            const basePrice = parseFloat(card.dataset.price);
+            const originalPrice = parseFloat(card.dataset.originalPrice || card.dataset.price);
             const priceEl = card.querySelector('.product-price');
             const mrpEl = card.querySelector('.product-mrp');
             const discountBadge = card.querySelector('.discount-badge');
 
-            priceEl.textContent = companySettings.currency_symbol + basePrice.toFixed(2);
+            priceEl.textContent = companySettings.currency_symbol + originalPrice.toFixed(2);
             mrpEl.style.display = 'none';
             discountBadge.style.display = 'none';
         });
     }
-
-    // Product search
-    document.getElementById('product-search').addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-
-        document.querySelectorAll('.product-card').forEach(card => {
-            const name = card.dataset.name.toLowerCase();
-            card.style.display = name.includes(query) ? 'block' : 'none';
-        });
-    });
-
-    // Add product to cart
-    document.querySelectorAll('.product-card').forEach(card => {
-        card.addEventListener('click', function() {
-            const productId = parseInt(this.dataset.id);
-            const productName = this.dataset.name;
-            const productPrice = parseFloat(this.dataset.price);
-
-            const existingItem = cart.find(item => item.product_id === productId);
-
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({
-                    product_id: productId,
-                    name: productName,
-                    unit_price: productPrice,
-                    quantity: 1,
-                    discount_percent: 0,
-                    tax_percent: 0,
-                });
-            }
-
-            renderCart();
-            updateCheckoutButton();
-        });
-    });
 
     // Render cart
     function renderCart() {
@@ -463,8 +570,8 @@
                 const distributorSavings = hasDistributorDiscount ? (mrpPrice - item.unit_price) * item.quantity : 0;
                 
                 return `
-                <div class="cart-item" style="grid-template-columns: 2fr 60px 90px 100px 30px; gap: 0.5rem;">
-                    <div style="min-width: 0;">
+                <div class="cart-item" style="margin-bottom: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                    <div style="min-width: 0; flex: 2;">
                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</div>
                         <div style="font-size: 0.7rem; color: var(--text-muted);">
                             MRP: ${companySettings.currency_symbol}${mrpPrice.toFixed(2)} 
@@ -481,17 +588,21 @@
                         </div>
                         `}
                     </div>
-                    <input type="number" class="qty-input" value="${item.quantity}" min="0.01" step="0.01" onchange="updateQuantity(${index}, this.value)" style="width: 55px; padding: 0.25rem; font-size: 0.8rem;">
-                    <div style="text-align: right; font-size: 0.8rem;">
+                    <div style="flex: 1;">
+                        <input type="number" class="qty-input" value="${item.quantity}" min="0.01" step="0.01" onchange="updateQuantity(${index}, this.value)" style="width: 60px; padding: 0.25rem; font-size: 0.8rem;">
+                    </div>
+                    <div style="flex: 1; text-align: right; font-size: 0.8rem;">
                         ${itemDiscountAmount > 0 ? `
                             <div style="text-decoration: line-through; color: var(--text-muted);">${companySettings.currency_symbol}${itemSubtotal.toFixed(2)}</div>
                             <div style="color: #f87171; font-size: 0.7rem;">-${companySettings.currency_symbol}${itemDiscountAmount.toFixed(2)}</div>
                         ` : ''}
                     </div>
-                    <div style="font-weight: 600; min-width: 80px; text-align: right; color: #34d399; font-size: 0.9rem;">
+                    <div style="flex: 1; font-weight: 600; text-align: right; color: #34d399; font-size: 0.9rem;">
                         ${companySettings.currency_symbol}${finalPrice.toFixed(2)}
                     </div>
-                    <button onclick="removeItem(${index})" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1rem; padding: 0;">🗑️</button>
+                    <div style="flex: 0;">
+                        <button onclick="removeItem(${index})" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1rem; padding: 0.25rem;">🗑️</button>
+                    </div>
                 </div>
                 `;
             }).join('');
@@ -501,19 +612,14 @@
     }
 
     // Update quantity
-    function updateQuantity(index, value) {
-        cart[index].quantity = parseInt(value) || 1;
+    window.updateQuantity = function(index, value) {
+        cart[index].quantity = parseFloat(value) || 1;
         renderCart();
-    }
-
-    // Update price
-    function updatePrice(index, value) {
-        cart[index].unit_price = parseFloat(value) || 0;
-        renderCart();
+        updateCheckoutButton();
     }
 
     // Remove item
-    function removeItem(index) {
+    window.removeItem = function(index) {
         cart.splice(index, 1);
         renderCart();
         updateCheckoutButton();
@@ -586,7 +692,7 @@
 
         // Show/hide GST section and update values
         const gstSection = document.getElementById('gst-section');
-        if (companySettings && companySettings.gst_type !== 'none' && companySettings.gst_percentage > 0) {
+        if (companySettings && companySettings.gst_type !== 'none' && companySettings.gst_percentage > 0 && taxableAmount > 0) {
             gstSection.style.display = 'block';
             const taxEl = document.getElementById('cart-tax');
             if (taxEl) taxEl.textContent = companySettings.currency_symbol + totalTax.toFixed(2);
@@ -610,17 +716,31 @@
         const distributorId = document.getElementById('distributor-select').value;
         const warehouseId = document.getElementById('warehouse-select').value;
         const hasItems = cart.length > 0;
-
-        document.getElementById('checkout-btn').disabled = !distributorId || !warehouseId || !hasItems;
+        
+        const checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) {
+            checkoutBtn.disabled = !distributorId || !warehouseId || !hasItems;
+        }
     }
 
-    // Checkout
-    document.getElementById('checkout-btn').addEventListener('click', function() {
-        if (this.disabled) return;
-
+    // Process checkout
+    function processCheckout() {
+        const distributorId = document.getElementById('distributor-select').value;
+        const warehouseId = document.getElementById('warehouse-select').value;
+        
+        if (!distributorId || !warehouseId) {
+            alert('Please select both distributor and warehouse');
+            return;
+        }
+        
+        if (cart.length === 0) {
+            alert('Cart is empty');
+            return;
+        }
+        
         const data = {
-            distributor_id: document.getElementById('distributor-select').value,
-            warehouse_id: document.getElementById('warehouse-select').value,
+            distributor_id: distributorId,
+            warehouse_id: warehouseId,
             items: cart.map(item => ({
                 product_id: item.product_id,
                 quantity: item.quantity,
@@ -631,7 +751,12 @@
             payment_method: document.getElementById('payment-method').value,
             notes: document.getElementById('sale-notes').value,
         };
-
+        
+        // Disable button to prevent double submission
+        const checkoutBtn = document.getElementById('checkout-btn');
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = '⏳ Processing...';
+        
         fetch('{{ route('admin.pos.store') }}', {
             method: 'POST',
             headers: {
@@ -646,11 +771,16 @@
                 window.location.href = data.redirect_url;
             } else {
                 alert(data.message || 'Error processing sale');
+                checkoutBtn.disabled = false;
+                checkoutBtn.textContent = '✅ Complete Sale';
             }
         })
         .catch(e => {
+            console.error('Error:', e);
             alert('Error processing sale: ' + e.message);
+            checkoutBtn.disabled = false;
+            checkoutBtn.textContent = '✅ Complete Sale';
         });
-    });
+    }
 </script>
 @endpush
