@@ -274,11 +274,17 @@
     let products = @json($products);
     let distributors = @json($distributors);
     let companySettings = @json($companySettings);
+    let originalStocks = {}; // Track original stock by product ID
 
     // Wait for DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
         console.log('POS System Initialized');
         console.log('Products loaded:', products.length);
+        console.log('Products data:', products);
+        
+        if (products.length === 0) {
+            alert('WARNING: No products loaded!');
+        }
         
         initializeEventListeners();
         initializeProductClickHandlers();
@@ -289,55 +295,51 @@
         
         if (!productsGrid) {
             console.error('Products grid not found');
+            alert('ERROR: Products grid not found in DOM');
             return;
         }
         
-        console.log('Initializing product click handlers on products-grid');
+        const productCards = productsGrid.querySelectorAll('.product-card');
+        console.log('Found', productCards.length, 'product cards');
         
-        // Use event delegation for product cards
-        productsGrid.addEventListener('click', function(e) {
-            console.log('Click detected on products-grid, target:', e.target);
-            
-            // Find the closest product-card element
-            const productCard = e.target.closest('.product-card');
-            if (!productCard) {
-                console.log('No product-card found for click');
-                return;
-            }
-            
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Get product data from data attributes
-            const productId = parseInt(productCard.dataset.id);
-            const productName = productCard.dataset.name;
-            const productPrice = parseFloat(productCard.dataset.price);
-            
-            console.log('Product clicked:', {productId, productName, productPrice, dataset: productCard.dataset});
-            
-            // Validate data
-            if (!productId) {
-                console.error('Invalid product ID', productCard.dataset);
-                alert('Invalid product ID');
-                return;
-            }
-            
-            if (isNaN(productPrice)) {
-                console.error('Invalid product price', productCard.dataset);
-                alert('Invalid product price');
-                return;
-            }
-            
-            // Check if warehouse is selected
-            const warehouseId = document.getElementById('warehouse-select').value;
-            if (!warehouseId) {
-                alert('Please select a warehouse first');
-                return;
-            }
-            
-            // Check stock before adding to cart
-            checkStockAndAddToCart(productId, productName, productPrice, productCard);
+        if (productCards.length === 0) {
+            alert('ERROR: No product cards found');
+            return;
+        }
+        
+        // Attach click handler to each card directly
+        productCards.forEach((card, index) => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const productId = parseInt(this.dataset.id);
+                const productName = this.dataset.name;
+                const productPrice = parseFloat(this.dataset.price);
+                
+                console.log('Card', index, 'clicked:', {productId, productName, productPrice});
+                
+                if (!productId) {
+                    alert('Invalid product ID: ' + this.dataset.id);
+                    return;
+                }
+                
+                if (isNaN(productPrice)) {
+                    alert('Invalid product price: ' + this.dataset.price);
+                    return;
+                }
+                
+                const warehouseId = document.getElementById('warehouse-select').value;
+                if (!warehouseId) {
+                    alert('Please select a warehouse first');
+                    return;
+                }
+                
+                checkStockAndAddToCart(productId, productName, productPrice, this);
+            });
         });
+        
+        console.log('Click handlers attached to', productCards.length, 'products');
     }
     
     function initializeEventListeners() {
@@ -386,7 +388,10 @@
             document.getElementById('warehouse-info').style.display = 'block';
 
             // Update stock status for all products
-            updateAllStockStatuses();
+            updateAllStockStatuses().then(() => {
+                // After all stocks fetched, update displays with cart quantities
+                updateAllProductStockDisplays();
+            });
             updateCheckoutButton();
         });
 
@@ -432,16 +437,23 @@
             .then(r => r.json())
             .then(data => {
                 console.log('Stock check response:', data);
-                // Update stock display for this product
+                // Update stock display for this product with cart logic
                 const stockEl = productCard.querySelector('.stock-status');
                 if (stockEl && data.available_for_sale !== undefined) {
-                    if (data.available_for_sale > 0) {
-                        stockEl.textContent = 'Stock: ' + data.available_for_sale + ' units';
+                    originalStocks[productId] = data.available_for_sale;
+                    
+                    const cartItem = cart.find(item => item.product_id === productId);
+                    const cartQty = cartItem ? cartItem.quantity : 0;
+                    const displayStock = Math.max(0, data.available_for_sale - cartQty);
+                    
+                    console.log('DISPLAY STOCK:', displayStock, 'CART:', cartQty);
+                    
+                    if (displayStock > 0) {
+                        stockEl.textContent = displayStock + ' left • 🛒 ' + cartQty + ' in cart';
                         stockEl.style.color = '#34d399';
                     } else {
-                        stockEl.textContent = 'Out of stock!';
+                        stockEl.textContent = 'Out of stock';
                         stockEl.style.color = '#f87171';
-                        // Warn user but keep item in cart
                         if (data.available_for_sale === 0) {
                             alert('Warning: Product is out of stock at this warehouse!');
                         }
@@ -455,10 +467,13 @@
     }
     
     function addToCart(productId, productName, productPrice) {
+        console.log('Adding to cart:', {productId, productName, productPrice});
+        
         const existingItem = cart.find(item => item.product_id === productId);
         
         if (existingItem) {
             existingItem.quantity += 1;
+            console.log('Updated quantity for', productName, 'to', existingItem.quantity);
         } else {
             cart.push({
                 product_id: productId,
@@ -468,10 +483,42 @@
                 discount_percent: 0,
                 tax_percent: 0,
             });
+            console.log('Added new item to cart:', productName);
         }
         
+        console.log('Cart now has', cart.length, 'items');
         renderCart();
         updateCheckoutButton();
+        updateProductStockDisplay(productId);
+    }
+    
+    // Update stock display for a product based on cart quantity
+    function updateProductStockDisplay(productId) {
+        const stockEl = document.querySelector('.stock-status[data-product-id="' + productId + '"]');
+        if (!stockEl) return;
+        
+        const cartItem = cart.find(item => item.product_id === productId);
+        const cartQuantity = cartItem ? cartItem.quantity : 0;
+        const originalStock = originalStocks[productId];
+        
+        if (originalStock !== undefined) {
+            const displayStock = Math.max(0, originalStock - cartQuantity);
+            
+            if (cartQuantity > 0) {
+                stockEl.textContent = displayStock + ' left • 🛒 ' + cartQuantity + ' in cart';
+                stockEl.style.color = '#34d399';
+            } else {
+                stockEl.textContent = originalStock + ' units';
+                stockEl.style.color = '#34d399';
+            }
+        }
+    }
+    
+    // Update all product stock displays based on current cart
+    function updateAllProductStockDisplays() {
+        cart.forEach(item => {
+            updateProductStockDisplay(item.product_id);
+        });
     }
     
     // Fetch nearest warehouse
@@ -491,7 +538,9 @@
                         document.getElementById('distance-info').textContent = '';
                     }
 
-                    updateAllStockStatuses();
+                    updateAllStockStatuses().then(() => {
+                        updateAllProductStockDisplays();
+                    });
                     updateCheckoutButton();
                 }
             })
@@ -508,9 +557,10 @@
                 el.textContent = 'Select warehouse to check stock';
                 el.style.color = 'var(--text-muted)';
             });
-            return;
+            return Promise.resolve();
         }
 
+        const promises = [];
         document.querySelectorAll('.stock-status').forEach(el => {
             const productId = el.dataset.productId;
             let url = '{{ route('admin.pos.check-inventory') }}?product_id=' + productId + '&warehouse_id=' + warehouseId;
@@ -518,11 +568,25 @@
                 url += '&distributor_id=' + distributorId;
             }
 
-            fetch(url)
+            const promise = fetch(url)
                 .then(r => r.json())
                 .then(data => {
+                    const productId = parseInt(el.dataset.productId);
+                    const cartItem = cart.find(item => item.product_id === productId);
+                    const cartQuantity = cartItem ? cartItem.quantity : 0;
+                    
+                    // Store backend stock as the truth
+                    originalStocks[productId] = data.available_for_sale;
+                    
+                    // Calculate display stock (backend - cart)
+                    const displayStock = Math.max(0, data.available_for_sale - cartQuantity);
+                    
                     if (data.available_for_sale > 0) {
-                        el.textContent = 'Stock: ' + data.available_for_sale + ' units';
+                        if (cartQuantity > 0) {
+                            el.textContent = displayStock + ' left • 🛒 ' + cartQuantity + ' in cart';
+                        } else {
+                            el.textContent = data.available_for_sale + ' units';
+                        }
                         el.style.color = '#34d399';
                     } else {
                         el.textContent = 'Out of stock';
@@ -534,7 +598,10 @@
                     el.textContent = 'Stock check failed';
                     el.style.color = '#f87171';
                 });
+            promises.push(promise);
         });
+        
+        return Promise.all(promises);
     }
 
     // Update product prices based on distributor discount
@@ -582,6 +649,15 @@
     function renderCart() {
         const cartContainer = document.getElementById('cart-items');
         const emptyCart = document.getElementById('empty-cart');
+        
+        console.log('renderCart called, cart length:', cart.length);
+        
+        if (!cartContainer || !emptyCart) {
+            console.error('Cart elements not found');
+            alert('ERROR: Cart container not found');
+            return;
+        }
+        
         const distributorSelect = document.getElementById('distributor-select');
         const distributorId = distributorSelect.value;
         const distributor = distributors.find(d => d.id == distributorId);
@@ -594,9 +670,12 @@
             cartContainer.style.display = 'block';
             emptyCart.style.display = 'none';
 
+            try {
             cartContainer.innerHTML = cart.map((item, index) => {
+                try {
                 const product = products.find(p => p.id == item.product_id);
-                const mrpPrice = product ? product.mrp_price : item.unit_price;
+                const mrpPrice = product ? (parseFloat(product.mrp_price) || item.unit_price) : item.unit_price;
+                const unitPrice = parseFloat(item.unit_price) || 0;
                 
                 // Calculate item-level discount from discount_percent
                 const itemSubtotal = item.quantity * mrpPrice;
@@ -606,20 +685,21 @@
                 
                 // Show distributor discount info
                 const hasDistributorDiscount = distributorDiscount > 0;
-                const distributorSavings = hasDistributorDiscount ? (mrpPrice - item.unit_price) * item.quantity : 0;
+                const distributorSavings = hasDistributorDiscount ? (mrpPrice - unitPrice) * item.quantity : 0;
+                const currencySymbol = companySettings && companySettings.currency_symbol ? companySettings.currency_symbol : '₹';
                 
                 return `
                 <div class="cart-item" style="margin-bottom: 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 8px;">
                     <div style="min-width: 0; flex: 2;">
                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</div>
                         <div style="font-size: 0.7rem; color: var(--text-muted);">
-                            MRP: ${companySettings.currency_symbol}${mrpPrice.toFixed(2)} 
+                            MRP: ${currencySymbol}${mrpPrice.toFixed(2)} 
                             ${itemDiscountPercent > 0 ? `<span style="color: #f87171;">(${itemDiscountPercent}% off)</span>` : ''}
                         </div>
                         ${hasDistributorDiscount ? `
                         <div style="font-size: 0.7rem; color: #10b981;">
-                            Dist. Price: ${companySettings.currency_symbol}${item.unit_price.toFixed(2)} 
-                            <span style="color: #f87171;">(Save ${companySettings.currency_symbol}${distributorSavings.toFixed(2)})</span>
+                            Dist. Price: ${currencySymbol}${unitPrice.toFixed(2)} 
+                            <span style="color: #f87171;">(Save ${currencySymbol}${distributorSavings.toFixed(2)})</span>
                         </div>
                         ` : `
                         <div style="font-size: 0.7rem; color: #fbbf24;">
@@ -628,23 +708,31 @@
                         `}
                     </div>
                     <div style="flex: 1;">
-                        <input type="number" class="qty-input" value="${item.quantity}" min="0.01" step="0.01" onchange="updateQuantity(${index}, this.value)" style="width: 60px; padding: 0.25rem; font-size: 0.8rem;">
+                        <input type="number" class="qty-input" value="${item.quantity}" min="1" step="1" onchange="updateQuantity(${index}, this.value)" style="width: 60px; padding: 0.25rem; font-size: 0.8rem;">
                     </div>
                     <div style="flex: 1; text-align: right; font-size: 0.8rem;">
                         ${itemDiscountAmount > 0 ? `
-                            <div style="text-decoration: line-through; color: var(--text-muted);">${companySettings.currency_symbol}${itemSubtotal.toFixed(2)}</div>
-                            <div style="color: #f87171; font-size: 0.7rem;">-${companySettings.currency_symbol}${itemDiscountAmount.toFixed(2)}</div>
+                            <div style="text-decoration: line-through; color: var(--text-muted);">${currencySymbol}${itemSubtotal.toFixed(2)}</div>
+                            <div style="color: #f87171; font-size: 0.7rem;">-${currencySymbol}${itemDiscountAmount.toFixed(2)}</div>
                         ` : ''}
                     </div>
                     <div style="flex: 1; font-weight: 600; text-align: right; color: #34d399; font-size: 0.9rem;">
-                        ${companySettings.currency_symbol}${finalPrice.toFixed(2)}
+                        ${currencySymbol}${(unitPrice * item.quantity).toFixed(2)}
                     </div>
                     <div style="flex: 0;">
                         <button onclick="removeItem(${index})" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1rem; padding: 0.25rem;">🗑️</button>
                     </div>
                 </div>
                 `;
+                } catch (itemError) {
+                    console.error('Error rendering cart item:', item, itemError);
+                    return '<div style="color: #f87171; padding: 0.5rem;">Error rendering item</div>';
+                }
             }).join('');
+            } catch (error) {
+                console.error('Error in renderCart:', error);
+                alert('Error rendering cart: ' + error.message);
+            }
         }
 
         calculateTotals();
@@ -652,16 +740,20 @@
 
     // Update quantity
     window.updateQuantity = function(index, value) {
+        const productId = cart[index].product_id;
         cart[index].quantity = parseFloat(value) || 1;
         renderCart();
         updateCheckoutButton();
+        updateProductStockDisplay(productId);
     }
 
     // Remove item
     window.removeItem = function(index) {
+        const removedProductId = cart[index].product_id;
         cart.splice(index, 1);
         renderCart();
         updateCheckoutButton();
+        updateProductStockDisplay(removedProductId);
     }
 
     // Calculate totals with GST
@@ -801,10 +893,19 @@
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
             },
             body: JSON.stringify(data),
         })
-        .then(r => r.json())
+        .then(async (r) => {
+            const text = await r.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('Non-JSON response:', text);
+                throw new Error('Server returned HTML instead of JSON. Check console for details.');
+            }
+        })
         .then(data => {
             if (data.success) {
                 window.location.href = data.redirect_url;
