@@ -69,19 +69,19 @@
                 <div style="padding: 1rem 1.25rem; border-top: 1px solid var(--border-subtle); background: rgba(0,0,0,0.2);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.875rem;">
                         <span>MRP Total:</span>
-                        <span id="cart-mrp-total" style="font-weight: 500; text-decoration: line-through; color: var(--text-muted);">${companySettings.currency_symbol}0.00</span>
+                        <span id="cart-mrp-total" style="font-weight: 500; text-decoration: line-through; color: var(--text-muted);">{{ $companySettings->currency_symbol }}0.00</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.8125rem;">
                         <span>Item Discount:</span>
-                        <span id="cart-item-discount" style="font-weight: 500; color: #f87171;">-${companySettings.currency_symbol}0.00</span>
+                        <span id="cart-item-discount" style="font-weight: 500; color: #f87171;">-{{ $companySettings->currency_symbol }}0.00</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.8125rem;">
                         <span>Dist. Discount:</span>
-                        <span id="cart-dist-discount" style="font-weight: 500; color: #10b981;">-${companySettings.currency_symbol}0.00</span>
+                        <span id="cart-dist-discount" style="font-weight: 500; color: #10b981;">-{{ $companySettings->currency_symbol }}0.00</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem; padding-top: 0.25rem; border-top: 1px dashed var(--border-subtle);">
                         <span>Subtotal:</span>
-                        <span id="cart-subtotal" style="font-weight: 500;">${companySettings.currency_symbol}0.00</span>
+                        <span id="cart-subtotal" style="font-weight: 500;">{{ $companySettings->currency_symbol }}0.00</span>
                     </div>
                     <!-- GST Breakdown -->
                     <div id="gst-section" style="display: none;">
@@ -92,30 +92,30 @@
                             @if($companySettings->gst_type === 'b2c')
                                 <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.25rem;">
                                     <span>CGST ({{ $companySettings->cgst_percentage }}%):</span>
-                                    <span id="cart-cgst">${companySettings.currency_symbol}0.00</span>
+                                    <span id="cart-cgst">{{ $companySettings->currency_symbol }}0.00</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.25rem;">
                                     <span>SGST ({{ $companySettings->sgst_percentage }}%):</span>
-                                    <span id="cart-sgst">${companySettings.currency_symbol}0.00</span>
+                                    <span id="cart-sgst">{{ $companySettings->currency_symbol }}0.00</span>
                                 </div>
                             @else
                                 <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.25rem;">
                                     <span>IGST ({{ $companySettings->igst_percentage }}%):</span>
-                                    <span id="cart-igst">${companySettings.currency_symbol}0.00</span>
+                                    <span id="cart-igst">{{ $companySettings->currency_symbol }}0.00</span>
                                 </div>
                             @endif
                             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem; padding-top: 0.25rem; border-top: 1px dashed var(--border-subtle);">
                                 <span>Total Tax:</span>
-                                <span id="cart-tax" style="font-weight: 500;">${companySettings.currency_symbol}0.00</span>
+                                <span id="cart-tax" style="font-weight: 500;">{{ $companySettings->currency_symbol }}0.00</span>
                             </div>
                         @endif
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 600; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
                         <span>Total:</span>
-                        <span id="cart-total" style="color: #34d399;">${companySettings.currency_symbol}0.00</span>
+                        <span id="cart-total" style="color: #34d399;">{{ $companySettings->currency_symbol }}0.00</span>
                     </div>
                     <div style="text-align: right; font-size: 0.75rem; color: #10b981; margin-top: 0.25rem;">
-                        <span id="cart-total-savings">You save ${companySettings.currency_symbol}0.00</span>
+                        <span id="cart-total-savings">You save {{ $companySettings->currency_symbol }}0.00</span>
                     </div>
                 </div>
             </div>
@@ -185,7 +185,7 @@
         <div style="display: flex; gap: 1rem; align-items: center;">
             <div style="text-align: right;">
                 <div style="font-size: 0.75rem; color: var(--text-muted);">Total Amount</div>
-                <div id="checkout-total" style="font-size: 1.5rem; font-weight: 600; color: #34d399;">₹0.00</div>
+                <div id="checkout-total" style="font-size: 1.5rem; font-weight: 600; color: #34d399;">{{ $companySettings->currency_symbol }}0.00</div>
             </div>
             <button id="checkout-btn" class="btn-primary" style="padding: 0.875rem 2rem; font-size: 1rem;" disabled>
                 ✅ Complete Sale
