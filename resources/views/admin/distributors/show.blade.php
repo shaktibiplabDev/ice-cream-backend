@@ -89,7 +89,19 @@
                     <div class="detail-label">⏰ Business Hours</div>
                     <div class="detail-value">{{ $distributor->timings ?? 'N/A' }}</div>
                 </div>
-                
+
+                <div class="detail-item">
+                    <div class="detail-label">💰 Discount Percentage</div>
+                    <div class="detail-value">
+                        @if($distributor->discount_percentage)
+                            <span style="color: #f87171; font-weight: 500;">{{ $distributor->discount_percentage }}%</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 0.5rem;">(Applied to MRP)</span>
+                        @else
+                            <span style="color: var(--text-muted);">No discount set</span>
+                        @endif
+                    </div>
+                </div>
+
                 <div class="detail-item full-width">
                     <div class="detail-label">📝 Description</div>
                     <div class="detail-value">{{ $distributor->description ?? 'No description provided.' }}</div>

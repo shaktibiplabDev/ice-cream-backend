@@ -66,6 +66,7 @@ class PosController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'warehouse_id' => 'required|exists:warehouses,id',
+            'distributor_id' => 'nullable|exists:distributors,id',
         ]);
 
         $inventory = Inventory::where('warehouse_id', $request->warehouse_id)
@@ -73,6 +74,8 @@ class PosController extends Controller
             ->first();
 
         $product = Product::find($request->product_id);
+        $distributor = $request->distributor_id ? Distributor::find($request->distributor_id) : null;
+        $price = $product->getPriceForDistributor($distributor);
 
         return response()->json([
             'available' => $inventory ? $inventory->quantity : 0,
@@ -84,10 +87,11 @@ class PosController extends Controller
                 'mrp_price' => $product->mrp_price,
                 'distributor_price' => $product->distributor_price,
                 'retailer_price' => $product->retailer_price,
-                'price' => $product->distributor_price, // For backward compatibility, use distributor price
+                'price' => $price, // Use distributor-specific price
                 'unit' => $product->unit,
                 'image' => $product->getImageUrl(),
             ],
+            'distributor_discount' => $distributor ? $distributor->discount_percentage : null,
         ]);
     }
 

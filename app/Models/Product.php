@@ -84,6 +84,15 @@ class Product extends Model
         };
     }
 
+    // Get price for a specific distributor (applies distributor discount if set)
+    public function getPriceForDistributor(?Distributor $distributor): float
+    {
+        if ($distributor && $distributor->discount_percentage !== null && $distributor->discount_percentage > 0) {
+            return $this->mrp_price - ($this->mrp_price * ($distributor->discount_percentage / 100));
+        }
+        return $this->distributor_price;
+    }
+
     // Scope active products
     public function scopeActive($query)
     {

@@ -25,8 +25,8 @@
                     <select id="distributor-select" class="filter-select" style="width: 100%; font-size: 0.9375rem;">
                         <option value="">Choose a distributor...</option>
                         @foreach($distributors as $distributor)
-                            <option value="{{ $distributor->id }}" data-lat="{{ $distributor->latitude }}" data-lng="{{ $distributor->longitude }}">
-                                {{ $distributor->name }} ({{ $distributor->contact_person }})
+                            <option value="{{ $distributor->id }}" data-lat="{{ $distributor->latitude }}" data-lng="{{ $distributor->longitude }}" data-discount="{{ $distributor->discount_percentage }}">
+                                {{ $distributor->name }} ({{ $distributor->contact_person }}){{ $distributor->discount_percentage ? ' - ' . $distributor->discount_percentage . '% discount' : '' }}
                             </option>
                         @endforeach
                     </select>
@@ -129,7 +129,7 @@
                 <div style="flex: 1; overflow-y: auto; padding: 1rem;">
                     <div id="products-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem;">
                         @foreach($products as $product)
-                            <div class="product-card" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->distributor_price }}" data-unit="{{ $product->unit }}" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: all 0.2s;">
+                            <div class="product-card" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->distributor_price }}" data-mrp="{{ $product->mrp_price }}" data-unit="{{ $product->unit }}" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: all 0.2s;">
                                 @if($product->image)
                                     <div style="width: 100%; height: 80px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
                                         <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" style="max-width: 100%; max-height: 80px; object-fit: contain; border-radius: var(--radius-sm);">
@@ -139,7 +139,9 @@
                                 @endif
                                 <div style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $product->name }}</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">{{ $product->unit }}</div>
-                                <div style="font-size: 0.9375rem; font-weight: 600; color: #34d399;">{{ $companySettings->currency_symbol }}{{ number_format($product->distributor_price, 2) }}</div>
+                                <div class="product-price" style="font-size: 0.9375rem; font-weight: 600; color: #34d399;">{{ $companySettings->currency_symbol }}{{ number_format($product->distributor_price, 2) }}</div>
+                                <div class="product-mrp" style="font-size: 0.6875rem; color: var(--text-muted); display: none;">MRP: {{ $companySettings->currency_symbol }}{{ number_format($product->mrp_price, 2) }}</div>
+                                <div class="discount-badge" style="font-size: 0.6875rem; color: #f87171; display: none;"></div>
                                 <div class="stock-status" data-product-id="{{ $product->id }}" style="font-size: 0.6875rem; margin-top: 0.5rem; color: var(--text-muted);">
                                     Select warehouse to check stock
                                 </div>
@@ -242,6 +244,7 @@
 
         if (!distributorId) {
             document.getElementById('distributor-info').style.display = 'none';
+            resetProductPrices();
             return;
         }
 
@@ -256,6 +259,8 @@
             fetchNearestWarehouse(distributorId);
         }
 
+        // Update product prices based on distributor discount
+        updateProductPrices(distributorId);
         updateCheckoutButton();
     });
 
@@ -304,6 +309,7 @@
     // Update stock status for all products
     function updateAllStockStatuses() {
         const warehouseId = document.getElementById('warehouse-select').value;
+        const distributorId = document.getElementById('distributor-select').value;
 
         if (!warehouseId) {
             document.querySelectorAll('.stock-status').forEach(el => {
@@ -315,8 +321,12 @@
 
         document.querySelectorAll('.stock-status').forEach(el => {
             const productId = el.dataset.productId;
+            let url = '{{ route('admin.pos.check-inventory') }}?product_id=' + productId + '&warehouse_id=' + warehouseId;
+            if (distributorId) {
+                url += '&distributor_id=' + distributorId;
+            }
 
-            fetch('{{ route('admin.pos.check-inventory') }}?product_id=' + productId + '&warehouse_id=' + warehouseId)
+            fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     if (data.available_for_sale > 0) {
@@ -327,6 +337,50 @@
                         el.style.color = '#f87171';
                     }
                 });
+        });
+    }
+
+    // Update product prices based on distributor discount
+    function updateProductPrices(distributorId) {
+        const distributorSelect = document.getElementById('distributor-select');
+        const selectedOption = distributorSelect.options[distributorSelect.selectedIndex];
+        const distributors = @json($distributors);
+        const distributor = distributors.find(d => d.id == distributorId);
+
+        document.querySelectorAll('.product-card').forEach(card => {
+            const basePrice = parseFloat(card.dataset.price);
+            const mrpPrice = parseFloat(card.dataset.mrp);
+            const priceEl = card.querySelector('.product-price');
+            const mrpEl = card.querySelector('.product-mrp');
+            const discountBadge = card.querySelector('.discount-badge');
+
+            if (distributor && distributor.discount_percentage && distributor.discount_percentage > 0) {
+                const discountedPrice = mrpPrice - (mrpPrice * (distributor.discount_percentage / 100));
+                priceEl.textContent = companySettings.currency_symbol + discountedPrice.toFixed(2);
+                mrpEl.style.display = 'block';
+                discountBadge.style.display = 'block';
+                discountBadge.textContent = distributor.discount_percentage + '% off MRP';
+                card.dataset.price = discountedPrice;
+            } else {
+                priceEl.textContent = companySettings.currency_symbol + basePrice.toFixed(2);
+                mrpEl.style.display = 'none';
+                discountBadge.style.display = 'none';
+                card.dataset.price = basePrice;
+            }
+        });
+    }
+
+    // Reset product prices to default
+    function resetProductPrices() {
+        document.querySelectorAll('.product-card').forEach(card => {
+            const basePrice = parseFloat(card.dataset.price);
+            const priceEl = card.querySelector('.product-price');
+            const mrpEl = card.querySelector('.product-mrp');
+            const discountBadge = card.querySelector('.discount-badge');
+
+            priceEl.textContent = companySettings.currency_symbol + basePrice.toFixed(2);
+            mrpEl.style.display = 'none';
+            discountBadge.style.display = 'none';
         });
     }
 

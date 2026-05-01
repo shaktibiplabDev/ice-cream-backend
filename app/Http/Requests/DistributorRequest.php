@@ -30,6 +30,7 @@ class DistributorRequest extends FormRequest
             'social_media' => 'nullable|string|max:500',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
         ];
     }
 }

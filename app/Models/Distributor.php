@@ -27,12 +27,14 @@ class Distributor extends Model
         'social_media',
         'latitude',
         'longitude',
+        'discount_percentage',
     ];
 
     protected $casts = [
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
         'is_active' => 'boolean',
+        'discount_percentage' => 'decimal:2',
     ];
 
     // Scope for active distributors

@@ -135,6 +135,16 @@
                     <input class="form-input" type="text" name="social_media" id="social_media" value="{{ old('social_media', $distributor->social_media ?? '') }}" placeholder="Instagram, Facebook, LinkedIn">
                     @error('social_media') <p class="form-error">{{ $message }}</p> @enderror
                 </div>
+
+                <div class="form-field">
+                    <label class="form-label" for="discount_percentage">
+                        Discount Percentage
+                        <span class="optional-label">Optional</span>
+                    </label>
+                    <input class="form-input" type="number" name="discount_percentage" id="discount_percentage" value="{{ old('discount_percentage', $distributor->discount_percentage ?? '') }}" placeholder="0" step="0.01" min="0" max="100">
+                    @error('discount_percentage') <p class="form-error">{{ $message }}</p> @enderror
+                    <p class="form-help">If set, this discount will be applied to MRP to calculate the distributor price</p>
+                </div>
             </div>
         </div>
     </div>

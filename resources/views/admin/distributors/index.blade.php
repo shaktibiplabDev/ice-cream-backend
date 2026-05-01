@@ -40,6 +40,7 @@
                         <th>Contact Person</th>
                         <th>Phone / Email</th>
                         <th>Service Area</th>
+                        <th>Discount</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -59,6 +60,13 @@
                         </td>
                         <td>{{ $distributor->service_area ?? 'N/A' }}</td>
                         <td>
+                            @if($distributor->discount_percentage)
+                                <span style="color: #f87171; font-weight: 500;">{{ $distributor->discount_percentage }}%</span>
+                            @else
+                                <span style="color: var(--text-muted);">N/A</span>
+                            @endif
+                        </td>
+                        <td>
                             <span class="status-badge {{ $distributor->is_active ? 'status-active' : 'status-inactive' }}">
                                 {{ $distributor->is_active ? 'Active' : 'Inactive' }}
                             </span>
@@ -77,7 +85,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="empty-state">
+                        <td colspan="8" class="empty-state">
                             <div class="empty-state-icon">🏪</div>
                             <div>No distributors found</div>
                             <div style="margin-top: 0.5rem;">
