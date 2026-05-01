@@ -248,10 +248,20 @@
     .product-card {
         cursor: pointer;
         user-select: none;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .product-card:hover {
+        z-index: 10;
     }
     
     .product-card:active {
         transform: scale(0.98);
+    }
+    
+    #products-grid {
+        position: relative;
     }
 </style>
 @endpush
@@ -282,11 +292,18 @@
             return;
         }
         
+        console.log('Initializing product click handlers on products-grid');
+        
         // Use event delegation for product cards
         productsGrid.addEventListener('click', function(e) {
+            console.log('Click detected on products-grid, target:', e.target);
+            
             // Find the closest product-card element
             const productCard = e.target.closest('.product-card');
-            if (!productCard) return;
+            if (!productCard) {
+                console.log('No product-card found for click');
+                return;
+            }
             
             e.preventDefault();
             e.stopPropagation();
@@ -296,12 +313,18 @@
             const productName = productCard.dataset.name;
             const productPrice = parseFloat(productCard.dataset.price);
             
-            console.log('Product clicked:', {productId, productName, productPrice});
+            console.log('Product clicked:', {productId, productName, productPrice, dataset: productCard.dataset});
             
             // Validate data
-            if (!productId || isNaN(productPrice)) {
-                console.error('Invalid product data', productCard.dataset);
-                alert('Invalid product data');
+            if (!productId) {
+                console.error('Invalid product ID', productCard.dataset);
+                alert('Invalid product ID');
+                return;
+            }
+            
+            if (isNaN(productPrice)) {
+                console.error('Invalid product price', productCard.dataset);
+                alert('Invalid product price');
                 return;
             }
             
@@ -388,30 +411,41 @@
         const warehouseId = document.getElementById('warehouse-select').value;
         const distributorId = document.getElementById('distributor-select').value;
         
+        console.log('Checking stock for product:', productId, 'warehouse:', warehouseId);
+        
         let url = '{{ route('admin.pos.check-inventory') }}?product_id=' + productId + '&warehouse_id=' + warehouseId;
         if (distributorId) {
             url += '&distributor_id=' + distributorId;
         }
         
         fetch(url)
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) {
+                    throw new Error('Stock check failed: ' + r.status);
+                }
+                return r.json();
+            })
             .then(data => {
+                console.log('Stock check response:', data);
                 if (data.available_for_sale > 0) {
                     // Add to cart
                     addToCart(productId, productName, productPrice);
                     
                     // Visual feedback
-                    productCard.style.transform = 'scale(0.98)';
+                    productCard.style.transform = 'scale(0.95)';
                     setTimeout(() => {
                         productCard.style.transform = '';
-                    }, 200);
+                    }, 150);
                 } else {
-                    alert('Product is out of stock');
+                    alert('Product is out of stock at selected warehouse');
                 }
             })
             .catch(error => {
                 console.error('Stock check failed:', error);
-                alert('Unable to check stock. Please try again.');
+                // Allow adding to cart anyway with a warning
+                if (confirm('Unable to check stock. Add to cart anyway?')) {
+                    addToCart(productId, productName, productPrice);
+                }
             });
     }
     
