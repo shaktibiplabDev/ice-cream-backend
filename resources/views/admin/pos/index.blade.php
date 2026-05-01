@@ -411,41 +411,46 @@
         const warehouseId = document.getElementById('warehouse-select').value;
         const distributorId = document.getElementById('distributor-select').value;
         
-        console.log('Checking stock for product:', productId, 'warehouse:', warehouseId);
+        console.log('Adding to cart - Product:', productId, 'Price:', productPrice);
         
+        // Add to cart immediately for better UX
+        addToCart(productId, productName, productPrice);
+        
+        // Visual feedback
+        productCard.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            productCard.style.transform = '';
+        }, 150);
+        
+        // Check stock in background (non-blocking)
         let url = '{{ route('admin.pos.check-inventory') }}?product_id=' + productId + '&warehouse_id=' + warehouseId;
         if (distributorId) {
             url += '&distributor_id=' + distributorId;
         }
         
         fetch(url)
-            .then(r => {
-                if (!r.ok) {
-                    throw new Error('Stock check failed: ' + r.status);
-                }
-                return r.json();
-            })
+            .then(r => r.json())
             .then(data => {
                 console.log('Stock check response:', data);
-                if (data.available_for_sale > 0) {
-                    // Add to cart
-                    addToCart(productId, productName, productPrice);
-                    
-                    // Visual feedback
-                    productCard.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        productCard.style.transform = '';
-                    }, 150);
-                } else {
-                    alert('Product is out of stock at selected warehouse');
+                // Update stock display for this product
+                const stockEl = productCard.querySelector('.stock-status');
+                if (stockEl && data.available_for_sale !== undefined) {
+                    if (data.available_for_sale > 0) {
+                        stockEl.textContent = 'Stock: ' + data.available_for_sale + ' units';
+                        stockEl.style.color = '#34d399';
+                    } else {
+                        stockEl.textContent = 'Out of stock!';
+                        stockEl.style.color = '#f87171';
+                        // Warn user but keep item in cart
+                        if (data.available_for_sale === 0) {
+                            alert('Warning: Product is out of stock at this warehouse!');
+                        }
+                    }
                 }
             })
             .catch(error => {
-                console.error('Stock check failed:', error);
-                // Allow adding to cart anyway with a warning
-                if (confirm('Unable to check stock. Add to cart anyway?')) {
-                    addToCart(productId, productName, productPrice);
-                }
+                console.error('Stock check failed (non-critical):', error);
+                // Silently ignore - product already added to cart
             });
     }
     
