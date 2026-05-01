@@ -408,7 +408,7 @@
     // Add product to cart
     document.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('click', function() {
-            const productId = this.dataset.id;
+            const productId = parseInt(this.dataset.id);
             const productName = this.dataset.name;
             const productPrice = parseFloat(this.dataset.price);
 
