@@ -87,7 +87,7 @@ class Inventory extends Model
     // Remove stock
     public function removeStock(float $amount, string $referenceType = null, int $referenceId = null, string $notes = null, int $adminId = null): ?StockMovement
     {
-        if ($this->availableQuantity() < $amount) {
+        if (bccomp($this->availableQuantity(), $amount, 2) < 0) {
             return null; // Insufficient stock
         }
 

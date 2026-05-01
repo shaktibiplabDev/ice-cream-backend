@@ -8,6 +8,14 @@ use App\Models\Inquiry;
 
 class DashboardController extends Controller
 {
+    /**
+     * Calculate percentage safely, returning 0 if denominator is 0
+     */
+    private function safePercentage(int $numerator, int $denominator): int
+    {
+        return $denominator > 0 ? (int) round(($numerator / $denominator) * 100) : 0;
+    }
+
     public function index()
     {
         $totalInquiries = Inquiry::count();
@@ -19,7 +27,7 @@ class DashboardController extends Controller
         $inactiveDistributors = max($totalDistributors - $activeDistributors, 0);
         $recentInquiries = Inquiry::latest()->take(5)->get();
         $recentDistributors = Distributor::latest()->take(5)->get();
-        $responseRate = $totalInquiries > 0 ? (int) round(($repliedInquiries / $totalInquiries) * 100) : 0;
+        $responseRate = $this->safePercentage($repliedInquiries, $totalInquiries);
 
         $monthlyInquiryStats = collect(range(3, 0))->map(function ($monthsAgo) {
             $month = now()->subMonthsNoOverflow($monthsAgo);
@@ -49,25 +57,25 @@ class DashboardController extends Controller
             [
                 'name' => 'New inquiries',
                 'count' => $newInquiries,
-                'percentage' => $totalInquiries > 0 ? (int) round(($newInquiries / $totalInquiries) * 100) : 0,
+                'percentage' => $this->safePercentage($newInquiries, $totalInquiries),
                 'class' => 'if-ambl',
             ],
             [
                 'name' => 'Read inquiries',
                 'count' => $readInquiries,
-                'percentage' => $totalInquiries > 0 ? (int) round(($readInquiries / $totalInquiries) * 100) : 0,
+                'percentage' => $this->safePercentage($readInquiries, $totalInquiries),
                 'class' => 'if-sky',
             ],
             [
                 'name' => 'Replied inquiries',
                 'count' => $repliedInquiries,
-                'percentage' => $totalInquiries > 0 ? (int) round(($repliedInquiries / $totalInquiries) * 100) : 0,
+                'percentage' => $this->safePercentage($repliedInquiries, $totalInquiries),
                 'class' => 'if-mint',
             ],
             [
                 'name' => 'Active distributors',
                 'count' => $activeDistributors,
-                'percentage' => $totalDistributors > 0 ? (int) round(($activeDistributors / $totalDistributors) * 100) : 0,
+                'percentage' => $this->safePercentage($activeDistributors, $totalDistributors),
                 'class' => 'if-lav',
             ],
         ]);

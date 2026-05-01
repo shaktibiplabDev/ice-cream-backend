@@ -114,18 +114,36 @@ class PosController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // Calculate subtotal to validate discount_amount doesn't exceed it
+        $calculatedSubtotal = 0;
+        foreach ($request->items as $item) {
+            $qty = $item['quantity'];
+            $unitPrice = $item['unit_price'];
+            $itemSubtotal = round($qty * $unitPrice, 2);
+            $calculatedSubtotal += $itemSubtotal;
+        }
+
+        $discountAmount = $request->discount_amount ?? 0;
+        if ($discountAmount > $calculatedSubtotal) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Discount amount cannot exceed the subtotal of ' . number_format($calculatedSubtotal, 2),
+            ], 422);
+        }
+
         DB::beginTransaction();
 
         try {
-            // Verify stock availability
+            // Verify stock availability with row locking to prevent race conditions
             foreach ($request->items as $item) {
                 $inventory = Inventory::where('warehouse_id', $request->warehouse_id)
                     ->where('product_id', $item['product_id'])
+                    ->lockForUpdate()
                     ->first();
 
                 $available = $inventory ? $inventory->quantity - $inventory->reserved_quantity : 0;
 
-                if ($available < $item['quantity']) {
+                if (bccomp($available, $item['quantity'], 2) < 0) {
                     throw new \Exception('Insufficient stock for product: ' . Product::find($item['product_id'])->name);
                 }
             }
@@ -142,15 +160,15 @@ class PosController extends Controller
                 $unitPrice = $item['unit_price'];
                 $discountPercent = $item['discount_percent'] ?? 0;
 
-                $itemSubtotal = $qty * $unitPrice;
-                $itemDiscount = $itemSubtotal * ($discountPercent / 100);
+                $itemSubtotal = round($qty * $unitPrice, 2);
+                $itemDiscount = round($itemSubtotal * ($discountPercent / 100), 2);
 
                 $subtotal += $itemSubtotal;
                 $totalDiscount += $itemDiscount;
             }
 
             $discountAmount = $request->discount_amount ?? 0;
-            $taxableAmount = $subtotal - $totalDiscount - $discountAmount;
+            $taxableAmount = round($subtotal - $totalDiscount - $discountAmount, 2);
 
             // Calculate GST based on company settings
             $cgst = 0;
@@ -160,16 +178,21 @@ class PosController extends Controller
 
             if ($companySettings->isGstEnabled()) {
                 if ($companySettings->isB2B()) {
-                    $igst = $taxableAmount * ($companySettings->igst_percentage / 100);
+                    $igst = round($taxableAmount * ($companySettings->igst_percentage / 100), 2);
                     $totalTax = $igst;
                 } else {
-                    $cgst = $taxableAmount * ($companySettings->cgst_percentage / 100);
-                    $sgst = $taxableAmount * ($companySettings->sgst_percentage / 100);
+                    $cgst = round($taxableAmount * ($companySettings->cgst_percentage / 100), 2);
+                    $sgst = round($taxableAmount * ($companySettings->sgst_percentage / 100), 2);
                     $totalTax = $cgst + $sgst;
                 }
             }
 
-            $totalAmount = $taxableAmount + $totalTax;
+            $totalAmount = round($taxableAmount + $totalTax, 2);
+
+            // Validate that total amount is positive
+            if ($totalAmount < 0) {
+                throw new \Exception('Total amount cannot be negative. Discount exceeds subtotal.');
+            }
 
             // Create sale
             $sale = Sale::create([
@@ -183,7 +206,7 @@ class PosController extends Controller
                 'sgst_amount' => $sgst,
                 'igst_amount' => $igst,
                 'discount_amount' => $totalDiscount + $discountAmount,
-                'total_amount' => max(0, $totalAmount),
+                'total_amount' => $totalAmount,
                 'status' => 'completed',
                 'payment_status' => $request->payment_method === 'credit' ? 'pending' : 'paid',
                 'payment_method' => $request->payment_method ?? 'cash',
@@ -198,11 +221,11 @@ class PosController extends Controller
                 $discountPercent = $item['discount_percent'] ?? 0;
                 $taxPercent = $item['tax_percent'] ?? 0;
 
-                $itemSubtotal = $qty * $unitPrice;
-                $itemDiscount = $itemSubtotal * ($discountPercent / 100);
-                $itemTaxable = $itemSubtotal - $itemDiscount;
-                $itemTax = $itemTaxable * ($taxPercent / 100);
-                $itemTotal = $itemTaxable + $itemTax;
+                $itemSubtotal = round($qty * $unitPrice, 2);
+                $itemDiscount = round($itemSubtotal * ($discountPercent / 100), 2);
+                $itemTaxable = round($itemSubtotal - $itemDiscount, 2);
+                $itemTax = round($itemTaxable * ($taxPercent / 100), 2);
+                $itemTotal = round($itemTaxable + $itemTax, 2);
 
                 SaleItem::create([
                     'sale_id' => $sale->id,
@@ -347,18 +370,32 @@ class PosController extends Controller
     }
 
     /**
-     * Generate unique invoice number
+     * Generate unique invoice number with collision protection
      */
-    private function generateInvoiceNumber()
+    private function generateInvoiceNumber(): string
     {
         $prefix = 'INV';
         $year = date('Y');
         $month = date('m');
         $day = date('d');
+        $maxAttempts = 5;
+        $attempt = 0;
 
-        // Get count of sales today
-        $count = Sale::whereDate('created_at', today())->count() + 1;
+        while ($attempt < $maxAttempts) {
+            // Use random suffix instead of sequential count to prevent collisions
+            $random = strtoupper(substr(uniqid(), -4) . bin2hex(random_bytes(2)));
+            $invoiceNumber = "{$prefix}-{$year}{$month}{$day}-" . substr($random, 0, 6);
 
-        return "{$prefix}-{$year}{$month}{$day}-" . str_pad($count, 4, '0', STR_PAD_LEFT);
+            // Check for existence
+            if (!Sale::where('invoice_number', $invoiceNumber)->exists()) {
+                return $invoiceNumber;
+            }
+
+            $attempt++;
+            usleep(100000); // 100ms delay between attempts
+        }
+
+        // Final fallback with microtime
+        return "{$prefix}-{$year}{$month}{$day}-" . substr(md5(microtime()), 0, 6);
     }
 }

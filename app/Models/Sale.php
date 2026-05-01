@@ -71,13 +71,19 @@ class Sale extends Model
     {
         parent::boot();
 
-        static::creating(function ($sale) {
-            if (empty($sale->invoice_number)) {
-                $sale->invoice_number = 'INV-' . date('Y') . '-' . str_pad(static::count() + 1, 6, '0', STR_PAD_LEFT);
-            }
-            if (empty($sale->sale_date)) {
-                $sale->sale_date = now();
-            }
-        });
+        // Use a static flag to prevent duplicate callback registration
+        static $booted = false;
+
+        if (!$booted) {
+            static::creating(function ($sale) {
+                if (empty($sale->invoice_number)) {
+                    $sale->invoice_number = 'INV-' . date('Y') . '-' . str_pad(static::count() + 1, 6, '0', STR_PAD_LEFT);
+                }
+                if (empty($sale->sale_date)) {
+                    $sale->sale_date = now();
+                }
+            });
+            $booted = true;
+        }
     }
 }

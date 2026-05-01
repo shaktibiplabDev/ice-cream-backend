@@ -67,13 +67,21 @@
 
                 <!-- Cart Summary -->
                 <div style="padding: 1rem 1.25rem; border-top: 1px solid var(--border-subtle); background: rgba(0,0,0,0.2);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem;">
-                        <span>Subtotal:</span>
-                        <span id="cart-subtotal" style="font-weight: 500;">₹0.00</span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.875rem;">
+                        <span>MRP Total:</span>
+                        <span id="cart-mrp-total" style="font-weight: 500; text-decoration: line-through; color: var(--text-muted);">${companySettings.currency_symbol}0.00</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem;">
-                        <span>Discount:</span>
-                        <span id="cart-discount" style="font-weight: 500; color: #f87171;">-₹0.00</span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.8125rem;">
+                        <span>Item Discount:</span>
+                        <span id="cart-item-discount" style="font-weight: 500; color: #f87171;">-${companySettings.currency_symbol}0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.8125rem;">
+                        <span>Dist. Discount:</span>
+                        <span id="cart-dist-discount" style="font-weight: 500; color: #10b981;">-${companySettings.currency_symbol}0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem; padding-top: 0.25rem; border-top: 1px dashed var(--border-subtle);">
+                        <span>Subtotal:</span>
+                        <span id="cart-subtotal" style="font-weight: 500;">${companySettings.currency_symbol}0.00</span>
                     </div>
                     <!-- GST Breakdown -->
                     <div id="gst-section" style="display: none;">
@@ -84,27 +92,30 @@
                             @if($companySettings->gst_type === 'b2c')
                                 <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.25rem;">
                                     <span>CGST ({{ $companySettings->cgst_percentage }}%):</span>
-                                    <span id="cart-cgst">₹0.00</span>
+                                    <span id="cart-cgst">${companySettings.currency_symbol}0.00</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.25rem;">
                                     <span>SGST ({{ $companySettings->sgst_percentage }}%):</span>
-                                    <span id="cart-sgst">₹0.00</span>
+                                    <span id="cart-sgst">${companySettings.currency_symbol}0.00</span>
                                 </div>
                             @else
                                 <div style="display: flex; justify-content: space-between; font-size: 0.8125rem; margin-bottom: 0.25rem;">
                                     <span>IGST ({{ $companySettings->igst_percentage }}%):</span>
-                                    <span id="cart-igst">₹0.00</span>
+                                    <span id="cart-igst">${companySettings.currency_symbol}0.00</span>
                                 </div>
                             @endif
                             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem; padding-top: 0.25rem; border-top: 1px dashed var(--border-subtle);">
                                 <span>Total Tax:</span>
-                                <span id="cart-tax" style="font-weight: 500;">₹0.00</span>
+                                <span id="cart-tax" style="font-weight: 500;">${companySettings.currency_symbol}0.00</span>
                             </div>
                         @endif
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 600; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
                         <span>Total:</span>
-                        <span id="cart-total" style="color: #34d399;">₹0.00</span>
+                        <span id="cart-total" style="color: #34d399;">${companySettings.currency_symbol}0.00</span>
+                    </div>
+                    <div style="text-align: right; font-size: 0.75rem; color: #10b981; margin-top: 0.25rem;">
+                        <span id="cart-total-savings">You save ${companySettings.currency_symbol}0.00</span>
                     </div>
                 </div>
             </div>
@@ -425,6 +436,10 @@
     function renderCart() {
         const cartContainer = document.getElementById('cart-items');
         const emptyCart = document.getElementById('empty-cart');
+        const distributorSelect = document.getElementById('distributor-select');
+        const distributorId = distributorSelect.value;
+        const distributor = distributors.find(d => d.id == distributorId);
+        const distributorDiscount = distributor ? (distributor.discount_percentage || 0) : 0;
 
         if (cart.length === 0) {
             cartContainer.style.display = 'none';
@@ -433,18 +448,53 @@
             cartContainer.style.display = 'block';
             emptyCart.style.display = 'none';
 
-            cartContainer.innerHTML = cart.map((item, index) => `
-                <div class="cart-item">
-                    <div>
-                        <div style="font-weight: 500;">${item.name}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">₹${item.unit_price.toFixed(2)} each</div>
+            cartContainer.innerHTML = cart.map((item, index) => {
+                const product = products.find(p => p.id == item.product_id);
+                const mrpPrice = product ? product.mrp_price : item.unit_price;
+                
+                // Calculate item-level discount from discount_percent
+                const itemSubtotal = item.quantity * mrpPrice;
+                const itemDiscountPercent = item.discount_percent || 0;
+                const itemDiscountAmount = itemSubtotal * (itemDiscountPercent / 100);
+                const finalPrice = itemSubtotal - itemDiscountAmount;
+                
+                // Show distributor discount info
+                const hasDistributorDiscount = distributorDiscount > 0;
+                const distributorSavings = hasDistributorDiscount ? (mrpPrice - item.unit_price) * item.quantity : 0;
+                
+                return `
+                <div class="cart-item" style="grid-template-columns: 2fr 60px 90px 100px 30px; gap: 0.5rem;">
+                    <div style="min-width: 0;">
+                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">
+                            MRP: ${companySettings.currency_symbol}${mrpPrice.toFixed(2)} 
+                            ${itemDiscountPercent > 0 ? `<span style="color: #f87171;">(${itemDiscountPercent}% off)</span>` : ''}
+                        </div>
+                        ${hasDistributorDiscount ? `
+                        <div style="font-size: 0.7rem; color: #10b981;">
+                            Dist. Price: ${companySettings.currency_symbol}${item.unit_price.toFixed(2)} 
+                            <span style="color: #f87171;">(Save ${companySettings.currency_symbol}${distributorSavings.toFixed(2)})</span>
+                        </div>
+                        ` : `
+                        <div style="font-size: 0.7rem; color: #fbbf24;">
+                            No distributor discount
+                        </div>
+                        `}
                     </div>
-                    <input type="number" class="qty-input" value="${item.quantity}" min="1" onchange="updateQuantity(${index}, this.value)">
-                    <input type="number" class="price-input" value="${item.unit_price}" min="0" step="0.01" onchange="updatePrice(${index}, this.value)">
-                    <div style="font-weight: 500; min-width: 80px; text-align: right;">₹${(item.quantity * item.unit_price).toFixed(2)}</div>
-                    <button onclick="removeItem(${index})" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1.25rem;">🗑️</button>
+                    <input type="number" class="qty-input" value="${item.quantity}" min="0.01" step="0.01" onchange="updateQuantity(${index}, this.value)" style="width: 55px; padding: 0.25rem; font-size: 0.8rem;">
+                    <div style="text-align: right; font-size: 0.8rem;">
+                        ${itemDiscountAmount > 0 ? `
+                            <div style="text-decoration: line-through; color: var(--text-muted);">${companySettings.currency_symbol}${itemSubtotal.toFixed(2)}</div>
+                            <div style="color: #f87171; font-size: 0.7rem;">-${companySettings.currency_symbol}${itemDiscountAmount.toFixed(2)}</div>
+                        ` : ''}
+                    </div>
+                    <div style="font-weight: 600; min-width: 80px; text-align: right; color: #34d399; font-size: 0.9rem;">
+                        ${companySettings.currency_symbol}${finalPrice.toFixed(2)}
+                    </div>
+                    <button onclick="removeItem(${index})" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1rem; padding: 0;">🗑️</button>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         calculateTotals();
@@ -471,18 +521,33 @@
 
     // Calculate totals with GST
     function calculateTotals() {
+        const distributorSelect = document.getElementById('distributor-select');
+        const distributorId = distributorSelect.value;
+        const distributor = distributors.find(d => d.id == distributorId);
+        const distributorDiscount = distributor ? (distributor.discount_percentage || 0) : 0;
+
+        let mrpTotal = 0;
+        let itemDiscountTotal = 0;
+        let distDiscountTotal = 0;
         let subtotal = 0;
-        let discount = 0;
 
         cart.forEach(item => {
-            const itemSubtotal = item.quantity * item.unit_price;
-            const itemDiscount = itemSubtotal * (item.discount_percent / 100);
-
-            subtotal += itemSubtotal;
-            discount += itemDiscount;
+            const product = products.find(p => p.id == item.product_id);
+            const mrpPrice = product ? product.mrp_price : item.unit_price;
+            const distPrice = item.unit_price;
+            
+            const itemMrpSubtotal = item.quantity * mrpPrice;
+            const itemDistSubtotal = item.quantity * distPrice;
+            const itemDiscount = itemMrpSubtotal * ((item.discount_percent || 0) / 100);
+            const itemDistDiscount = (mrpPrice - distPrice) * item.quantity;
+            
+            mrpTotal += itemMrpSubtotal;
+            itemDiscountTotal += itemDiscount;
+            distDiscountTotal += itemDistDiscount;
+            subtotal += itemDistSubtotal - itemDiscount;
         });
 
-        const taxableAmount = subtotal - discount;
+        const taxableAmount = subtotal;
         let cgst = 0, sgst = 0, igst = 0, totalTax = 0;
 
         // Calculate GST based on company settings
@@ -500,26 +565,40 @@
         }
 
         const total = taxableAmount + totalTax;
+        const totalSavings = itemDiscountTotal + distDiscountTotal;
 
-        document.getElementById('cart-subtotal').textContent = '₹' + subtotal.toFixed(2);
-        document.getElementById('cart-discount').textContent = '-₹' + discount.toFixed(2);
-        document.getElementById('cart-total').textContent = '₹' + total.toFixed(2);
-        document.getElementById('checkout-total').textContent = '₹' + total.toFixed(2);
+        // Update all summary fields
+        const mrpTotalEl = document.getElementById('cart-mrp-total');
+        const itemDiscountEl = document.getElementById('cart-item-discount');
+        const distDiscountEl = document.getElementById('cart-dist-discount');
+        const subtotalEl = document.getElementById('cart-subtotal');
+        const totalEl = document.getElementById('cart-total');
+        const checkoutTotalEl = document.getElementById('checkout-total');
+        const totalSavingsEl = document.getElementById('cart-total-savings');
+
+        if (mrpTotalEl) mrpTotalEl.textContent = companySettings.currency_symbol + mrpTotal.toFixed(2);
+        if (itemDiscountEl) itemDiscountEl.textContent = '-' + companySettings.currency_symbol + itemDiscountTotal.toFixed(2);
+        if (distDiscountEl) distDiscountEl.textContent = '-' + companySettings.currency_symbol + distDiscountTotal.toFixed(2);
+        if (subtotalEl) subtotalEl.textContent = companySettings.currency_symbol + subtotal.toFixed(2);
+        if (totalEl) totalEl.textContent = companySettings.currency_symbol + total.toFixed(2);
+        if (checkoutTotalEl) checkoutTotalEl.textContent = companySettings.currency_symbol + total.toFixed(2);
+        if (totalSavingsEl) totalSavingsEl.textContent = 'You save ' + companySettings.currency_symbol + totalSavings.toFixed(2);
 
         // Show/hide GST section and update values
         const gstSection = document.getElementById('gst-section');
         if (companySettings && companySettings.gst_type !== 'none' && companySettings.gst_percentage > 0) {
             gstSection.style.display = 'block';
-            document.getElementById('cart-tax').textContent = '₹' + totalTax.toFixed(2);
+            const taxEl = document.getElementById('cart-tax');
+            if (taxEl) taxEl.textContent = companySettings.currency_symbol + totalTax.toFixed(2);
 
             if (companySettings.gst_type === 'b2c') {
                 const cgstEl = document.getElementById('cart-cgst');
                 const sgstEl = document.getElementById('cart-sgst');
-                if (cgstEl) cgstEl.textContent = '₹' + cgst.toFixed(2);
-                if (sgstEl) sgstEl.textContent = '₹' + sgst.toFixed(2);
+                if (cgstEl) cgstEl.textContent = companySettings.currency_symbol + cgst.toFixed(2);
+                if (sgstEl) sgstEl.textContent = companySettings.currency_symbol + sgst.toFixed(2);
             } else {
                 const igstEl = document.getElementById('cart-igst');
-                if (igstEl) igstEl.textContent = '₹' + igst.toFixed(2);
+                if (igstEl) igstEl.textContent = companySettings.currency_symbol + igst.toFixed(2);
             }
         } else {
             gstSection.style.display = 'none';
