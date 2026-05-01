@@ -128,7 +128,6 @@ class EmailFetcher
 
             $stats['status'] = 'success';
             $stats['message'] = "Fetched {$stats['fetched']} emails, {$stats['errors']} errors";
-
         } catch (\Exception $e) {
             Log::error('Email fetch failed', ['error' => $e->getMessage()]);
             $stats['status'] = 'error';
@@ -157,12 +156,16 @@ class EmailFetcher
         // Parse sender
         $from = $header->from[0] ?? null;
         $fromName = $from ? $this->decodeMimeString($from->personal ?? '') : 'Unknown';
-        $fromEmail = $from ? $from->mailbox . '@' . $from->host : 'unknown@example.com';
+        $fromEmail = ($from && isset($from->mailbox, $from->host))
+            ? $from->mailbox . '@' . $from->host
+            : 'unknown@example.com';
 
         // Parse recipient
         $to = $header->to[0] ?? null;
         $toName = $to ? $this->decodeMimeString($to->personal ?? '') : '';
-        $toEmail = $to ? $to->mailbox . '@' . $to->host : '';
+        $toEmail = ($to && isset($to->mailbox, $to->host))
+            ? $to->mailbox . '@' . $to->host
+            : '';
 
         // Get email body
         $body = $this->getEmailBody($mailbox, $emailId, $structure);
@@ -199,9 +202,9 @@ class EmailFetcher
     {
         $body = ['plain' => '', 'html' => ''];
 
-        if (!$structure->parts) {
+        if (!isset($structure->parts) || empty($structure->parts)) {
             // Simple message
-            $body['plain'] = $this->decodeBody(imap_body($mailbox, $emailId), $structure->encoding);
+            $body['plain'] = $this->decodeBody(imap_body($mailbox, $emailId), $structure->encoding ?? 0);
         } else {
             // Multipart message
             foreach ($structure->parts as $partNum => $part) {
