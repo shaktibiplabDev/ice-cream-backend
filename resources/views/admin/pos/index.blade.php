@@ -11,18 +11,18 @@
         <a href="{{ route('admin.pos.history') }}" class="btn-secondary" style="text-decoration: none;">📜 Sales History</a>
     </div>
 
-    <div class="pos-layout" style="display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem;">
+    <div class="pos-layout">
         <!-- Left Panel - Cart -->
         <div class="pos-cart">
-            <div class="glass-card" style="height: 100%;">
+            <div class="glass-card pos-cart-card">
                 <div class="card-head">
                     <h2>🛒 Sale Cart</h2>
                 </div>
 
                 <!-- Distributor Selection -->
-                <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-subtle);">
-                    <label class="detail-label" style="display: block; margin-bottom: 0.5rem;">Select Distributor *</label>
-                    <select id="distributor-select" class="filter-select" style="width: 100%; font-size: 0.9375rem;">
+                <div class="pos-section">
+                    <label class="detail-label pos-label">Select Distributor *</label>
+                    <select id="distributor-select" class="filter-select pos-select">
                         <option value="">Choose a distributor...</option>
                         @foreach($distributors as $distributor)
                             <option value="{{ $distributor->id }}" data-lat="{{ $distributor->latitude }}" data-lng="{{ $distributor->longitude }}" data-discount="{{ $distributor->discount_percentage }}">
@@ -30,18 +30,18 @@
                             </option>
                         @endforeach
                     </select>
-                    <div id="distributor-info" style="margin-top: 0.75rem; font-size: 0.8125rem; color: var(--text-muted); display: none;">
+                    <div id="distributor-info" class="pos-info-message" style="display: none;">
                         📍 <span id="distributor-location"></span>
                     </div>
                 </div>
 
                 <!-- Warehouse Selection -->
-                <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-subtle);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div class="pos-section">
+                    <div class="pos-section-header">
                         <label class="detail-label">Warehouse *</label>
-                        <span id="nearest-badge" style="font-size: 0.6875rem; color: #10b981; display: none;">✓ Nearest auto-selected</span>
+                        <span id="nearest-badge" class="pos-badge-success" style="display: none;">✓ Nearest auto-selected</span>
                     </div>
-                    <select id="warehouse-select" class="filter-select" style="width: 100%; font-size: 0.9375rem;">
+                    <select id="warehouse-select" class="filter-select pos-select">
                         <option value="">Select warehouse...</option>
                         @foreach($warehouses as $warehouse)
                             <option value="{{ $warehouse->id }}" data-lat="{{ $warehouse->latitude }}" data-lng="{{ $warehouse->longitude }}">
@@ -49,39 +49,39 @@
                             </option>
                         @endforeach
                     </select>
-                    <div id="warehouse-info" style="margin-top: 0.75rem; font-size: 0.8125rem; color: var(--text-muted); display: none;">
+                    <div id="warehouse-info" class="pos-info-message" style="display: none;">
                         📦 <span id="warehouse-address"></span>
-                        <span id="distance-info" style="color: #10b981; margin-left: 0.5rem;"></span>
+                        <span id="distance-info" class="pos-success-text" style="margin-left: 0.5rem;"></span>
                     </div>
                 </div>
 
                 <!-- Cart Items -->
-                <div style="padding: 1rem 1.25rem; flex: 1; overflow-y: auto; min-height: 300px;">
-                    <div id="empty-cart" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">🛒</div>
+                <div class="pos-cart-items">
+                    <div id="empty-cart" class="pos-empty-cart">
+                        <div class="pos-empty-icon">🛒</div>
                         <p>Your cart is empty</p>
-                        <p style="font-size: 0.8125rem; margin-top: 0.5rem;">Select products from the right panel</p>
+                        <p class="pos-empty-subtitle">Select products from the right panel</p>
                     </div>
                     <div id="cart-items" style="display: none;"></div>
                 </div>
 
                 <!-- Cart Summary -->
-                <div style="padding: 1rem 1.25rem; border-top: 1px solid var(--border-subtle); background: rgba(0,0,0,0.2);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.875rem;">
+                <div class="pos-cart-summary">
+                    <div class="pos-summary-row">
                         <span>MRP Total:</span>
-                        <span id="cart-mrp-total" style="font-weight: 500; text-decoration: line-through; color: var(--text-muted);">{{ $companySettings->currency_symbol }}0.00</span>
+                        <span id="cart-mrp-total" class="pos-mrp-total">{{ $companySettings->currency_symbol }}0.00</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.8125rem;">
+                    <div class="pos-summary-row pos-summary-small">
                         <span>Item Discount:</span>
-                        <span id="cart-item-discount" style="font-weight: 500; color: #f87171;">-{{ $companySettings->currency_symbol }}0.00</span>
+                        <span id="cart-item-discount" class="pos-discount-amount">-{{ $companySettings->currency_symbol }}0.00</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; font-size: 0.8125rem;">
+                    <div class="pos-summary-row pos-summary-small">
                         <span>Dist. Discount:</span>
-                        <span id="cart-dist-discount" style="font-weight: 500; color: #10b981;">-{{ $companySettings->currency_symbol }}0.00</span>
+                        <span id="cart-dist-discount" class="pos-savings-amount">-{{ $companySettings->currency_symbol }}0.00</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9375rem; padding-top: 0.25rem; border-top: 1px dashed var(--border-subtle);">
+                    <div class="pos-summary-row pos-subtotal-row">
                         <span>Subtotal:</span>
-                        <span id="cart-subtotal" style="font-weight: 500;">{{ $companySettings->currency_symbol }}0.00</span>
+                        <span id="cart-subtotal" class="pos-subtotal">{{ $companySettings->currency_symbol }}0.00</span>
                     </div>
                     <!-- GST Breakdown -->
                     <div id="gst-section" style="display: none;">

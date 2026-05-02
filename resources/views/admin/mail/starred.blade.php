@@ -521,6 +521,88 @@
         .action-btn span { display: none; }
         .action-btn svg { margin: 0; }
     }
+
+    /* Light Theme Support */
+    [data-theme="light"] .email-inbox-container {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .inbox-toolbar {
+        background: rgba(255, 255, 255, 0.98);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .inbox-sidebar {
+        background: rgba(255, 255, 255, 0.98);
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .nav-link {
+        color: var(--text-secondary);
+    }
+
+    [data-theme="light"] .nav-link:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--text-primary);
+    }
+
+    [data-theme="light"] .nav-link.active {
+        background: rgba(79, 70, 229, 0.1);
+        color: #4f46e5;
+    }
+
+    [data-theme="light"] .inbox-email-list {
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    [data-theme="light"] .email-table-header {
+        background: rgba(0, 0, 0, 0.03);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        color: var(--text-muted);
+    }
+
+    [data-theme="light"] .email-row {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        color: var(--text-secondary);
+    }
+
+    [data-theme="light"] .email-row:hover {
+        background: rgba(0, 0, 0, 0.03);
+    }
+
+    [data-theme="light"] .row-date {
+        color: var(--text-muted);
+    }
+
+    [data-theme="light"] .email-snippet {
+        color: var(--text-muted);
+    }
+
+    [data-theme="light"] .inbox-pagination {
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.98);
+    }
+
+    [data-theme="light"] .page-btn {
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        color: var(--text-secondary);
+    }
+
+    [data-theme="light"] .page-btn.current {
+        background: var(--accent-gradient);
+        color: white;
+        border-color: transparent;
+    }
+
+    [data-theme="light"] .star-svg {
+        color: #9ca3af;
+    }
+
+    [data-theme="light"] .star-svg.starred-active {
+        color: #f59e0b;
+    }
 </style>
 
 <script>

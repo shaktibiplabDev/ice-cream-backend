@@ -173,38 +173,77 @@
         // Initialize map with coordinates
         var map = L.map('map').setView([{{ $warehouse->latitude }}, {{ $warehouse->longitude }}], 13);
 
-        // Use dark map tiles to match the theme
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
-            maxZoom: 19,
-            subdomains: 'abcd'
-        }).addTo(map);
+        // Theme-aware map tiles with dynamic switching
+        let currentTileLayer = null;
+        let currentMarker = null;
 
-        // Add custom marker with W for warehouse
-        var customIcon = L.divIcon({
-            html: '<div style="background: linear-gradient(135deg, #ff6b6b, #4ecdc4); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3); color: white; font-weight: bold;">W</div>',
-            iconSize: [32, 32],
-            popupAnchor: [0, -16],
-            className: 'custom-marker'
+        function getTileUrl() {
+            const isLight = localStorage.getItem('admin-theme') === 'light';
+            return isLight
+                ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+        }
+
+        function getMarkerHtml() {
+            const isLight = localStorage.getItem('admin-theme') === 'light';
+            const borderColor = isLight ? '#1a1d24' : 'white';
+            return `<div style="background: linear-gradient(135deg, #ff6b6b, #4ecdc4); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid ${borderColor}; box-shadow: 0 2px 10px rgba(0,0,0,0.3); color: white; font-weight: bold;">W</div>`;
+        }
+
+        function getPopupHtml() {
+            const isLight = localStorage.getItem('admin-theme') === 'light';
+            const bg = isLight ? '#ffffff' : '#1a1d24';
+            const text = isLight ? '#1a1a1a' : 'white';
+            const subtext = isLight ? '#6b7280' : '#9ca3af';
+            const meta = isLight ? '#4b5563' : '#6b7280';
+
+            return `
+                <div style="background: ${bg}; padding: 8px 12px; border-radius: 8px; max-width: 250px;">
+                    <strong style="color: ${text};">{{ addslashes($warehouse->name) }}</strong><br>
+                    <span style="color: ${subtext}; font-size: 12px;">{{ addslashes($warehouse->address ?? 'Address not available') }}</span>
+                    @if($warehouse->phone)
+                        <br><span style="color: ${meta}; font-size: 11px;">📞 {{ $warehouse->phone }}</span>
+                    @endif
+                    @if($warehouse->manager_name)
+                        <br><span style="color: ${meta}; font-size: 11px;">👤 {{ $warehouse->manager_name }}</span>
+                    @endif
+                </div>
+            `;
+        }
+
+        function updateMap() {
+            // Update tiles
+            const newUrl = getTileUrl();
+            if (currentTileLayer) {
+                map.removeLayer(currentTileLayer);
+            }
+            currentTileLayer = L.tileLayer(newUrl, {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>',
+                maxZoom: 19,
+                subdomains: 'abcd'
+            }).addTo(map);
+
+            // Update marker
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+            }
+            var customIcon = L.divIcon({
+                html: getMarkerHtml(),
+                iconSize: [32, 32],
+                popupAnchor: [0, -16],
+                className: 'custom-marker'
+            });
+            currentMarker = L.marker([{{ $warehouse->latitude }}, {{ $warehouse->longitude }}], { icon: customIcon }).addTo(map);
+            currentMarker.bindPopup(getPopupHtml()).openPopup();
+        }
+
+        // Initial map setup
+        updateMap();
+
+        // Listen for theme changes
+        document.addEventListener('themeChanged', function() {
+            updateMap();
         });
-
-        var marker = L.marker([{{ $warehouse->latitude }}, {{ $warehouse->longitude }}], { icon: customIcon }).addTo(map);
-
-        // Popup content with warehouse info
-        var popupContent = `
-            <div style="background: #1a1d24; padding: 8px 12px; border-radius: 8px; max-width: 250px;">
-                <strong style="color: white;">{{ addslashes($warehouse->name) }}</strong><br>
-                <span style="color: #9ca3af; font-size: 12px;">{{ addslashes($warehouse->address ?? 'Address not available') }}</span>
-                @if($warehouse->phone)
-                    <br><span style="color: #6b7280; font-size: 11px;">📞 {{ $warehouse->phone }}</span>
-                @endif
-                @if($warehouse->manager_name)
-                    <br><span style="color: #6b7280; font-size: 11px;">👤 {{ $warehouse->manager_name }}</span>
-                @endif
-            </div>
-        `;
-
-        marker.bindPopup(popupContent).openPopup();
 
         // Add scale control
         L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(map);
@@ -228,6 +267,20 @@
         }
         .leaflet-popup-close-button {
             color: #9ca3af !important;
+        }
+
+        /* Light theme popup overrides */
+        [data-theme="light"] .leaflet-popup-content-wrapper {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        [data-theme="light"] .leaflet-popup-tip {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        [data-theme="light"] .leaflet-popup-close-button {
+            color: #6b7280 !important;
         }
     </style>
     @endif

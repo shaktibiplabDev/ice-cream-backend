@@ -250,6 +250,76 @@
         stroke-width: 2;
         stroke-opacity: 0.6;
     }
+
+    /* Light Theme Support for Map */
+    [data-theme="light"] .leaflet-popup-content-wrapper {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    [data-theme="light"] .leaflet-popup-tip {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .popup-content {
+        color: #1a1a1a;
+    }
+
+    [data-theme="light"] .popup-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .popup-title h3 {
+        color: #1a1a1a;
+    }
+
+    [data-theme="light"] .popup-title span {
+        color: #6b7280;
+    }
+
+    [data-theme="light"] .popup-row .label {
+        color: #6b7280;
+    }
+
+    [data-theme="light"] .popup-row .value {
+        color: #1a1a1a;
+    }
+
+    [data-theme="light"] .popup-actions {
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .popup-actions a {
+        background: #1a1a1a;
+        color: #ffffff;
+    }
+
+    [data-theme="light"] .popup-actions a:hover {
+        background: #374151;
+        color: #ffffff;
+    }
+
+    [data-theme="light"] .status-badge.normal {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+    }
+
+    [data-theme="light"] .status-badge.warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+    }
+
+    [data-theme="light"] .status-badge.critical {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+
+    /* Light theme map tiles */
+    [data-theme="light"] #territory-map {
+        filter: none;
+    }
 </style>
 @endpush
 
@@ -281,12 +351,35 @@
 
     const map = L.map('territory-map').setView([centerLat, centerLng], 5);
 
-    // Dark theme map tiles
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 19,
-        subdomains: 'abcd'
-    }).addTo(map);
+    // Theme-aware map tiles with dynamic switching
+    let currentTileLayer = null;
+
+    function getTileUrl() {
+        const isLight = localStorage.getItem('admin-theme') === 'light';
+        return isLight
+            ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    }
+
+    function updateMapTiles() {
+        const newUrl = getTileUrl();
+        if (currentTileLayer) {
+            map.removeLayer(currentTileLayer);
+        }
+        currentTileLayer = L.tileLayer(newUrl, {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            maxZoom: 19,
+            subdomains: 'abcd'
+        }).addTo(map);
+    }
+
+    // Initial tile load
+    updateMapTiles();
+
+    // Listen for theme toggle clicks and update tiles immediately
+    document.addEventListener('themeChanged', function() {
+        updateMapTiles();
+    });
 
     // Create territory polygons using Voronoi-like approach
     // We'll create circles that represent service areas

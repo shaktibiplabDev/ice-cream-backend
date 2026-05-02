@@ -436,6 +436,114 @@
         .toolbar-center { display: none; }
         .compose-label { width: 40px; }
     }
+
+    /* Light Theme Support */
+    [data-theme="light"] .email-inbox-container {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .inbox-toolbar {
+        background: rgba(255, 255, 255, 0.98);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .toolbar-nav-btn {
+        color: var(--text-secondary);
+    }
+
+    [data-theme="light"] .toolbar-nav-btn:hover {
+        background: rgba(0, 0, 0, 0.08);
+        color: var(--text-primary);
+    }
+
+    [data-theme="light"] .inbox-sidebar {
+        background: rgba(255, 255, 255, 0.98);
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .nav-link {
+        color: var(--text-secondary);
+    }
+
+    [data-theme="light"] .nav-link:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--text-primary);
+    }
+
+    [data-theme="light"] .nav-link.active {
+        background: rgba(79, 70, 229, 0.1);
+        color: #4f46e5;
+    }
+
+    [data-theme="light"] .email-reading-pane {
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    [data-theme="light"] .compose-card {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+    }
+
+    [data-theme="light"] .compose-row {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .compose-row-body {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="light"] .compose-label {
+        color: var(--text-muted);
+    }
+
+    [data-theme="light"] .compose-from-display {
+        color: var(--text-secondary);
+    }
+
+    [data-theme="light"] .compose-input {
+        color: var(--text-primary);
+    }
+
+    [data-theme="light"] .compose-input::placeholder {
+        color: var(--text-muted);
+    }
+
+    [data-theme="light"] .compose-textarea {
+        color: var(--text-primary);
+    }
+
+    [data-theme="light"] .compose-textarea::placeholder {
+        color: var(--text-muted);
+    }
+
+    [data-theme="light"] .compose-footer {
+        background: rgba(0, 0, 0, 0.03);
+    }
+
+    [data-theme="light"] .btn-attach {
+        color: var(--text-muted);
+    }
+
+    [data-theme="light"] .btn-attach:hover {
+        background: rgba(0, 0, 0, 0.08);
+        color: var(--text-primary);
+    }
+
+    [data-theme="light"] .btn-cancel {
+        color: var(--text-muted);
+    }
+
+    [data-theme="light"] .btn-cancel:hover {
+        color: #dc2626;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    [data-theme="light"] .file-item {
+        background: rgba(79, 70, 229, 0.08);
+        border: 1px solid rgba(79, 70, 229, 0.15);
+        color: var(--text-secondary);
+    }
 </style>
 
 <script>

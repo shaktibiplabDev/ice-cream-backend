@@ -212,6 +212,45 @@
         .data-table tr:last-child td {
             border-bottom: none;
         }
+
+        /* Light Theme Support */
+        [data-theme="light"] .status-active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+        }
+
+        [data-theme="light"] .status-inactive {
+            background: rgba(100, 116, 139, 0.15);
+            color: #64748b;
+        }
+
+        /* Light theme code blocks */
+        [data-theme="light"] code {
+            background: rgba(0, 0, 0, 0.08) !important;
+            color: var(--text-primary);
+        }
+
+        /* Light theme info/warning boxes */
+        [data-theme="light"] div[style*="background: rgba(52, 211, 153"] {
+            background: rgba(16, 185, 129, 0.1) !important;
+            border-color: #10b981 !important;
+        }
+
+        [data-theme="light"] div[style*="background: rgba(251, 191, 36"] {
+            background: rgba(245, 158, 11, 0.1) !important;
+            border-color: #f59e0b !important;
+        }
+
+        /* Fix manual run buttons for light theme */
+        [data-theme="light"] button[style*="background: rgba(251, 191, 36"] {
+            background: #f59e0b !important;
+            color: #ffffff !important;
+        }
+
+        [data-theme="light"] button[style*="background: rgba(52, 211, 153"] {
+            background: #10b981 !important;
+            color: #ffffff !important;
+        }
     </style>
 
     @push('scripts')
