@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Admin;
+use App\Models\Category;
 use App\Models\Distributor;
 use App\Models\Inquiry;
 use App\Models\Product;
@@ -116,6 +117,20 @@ class DatabaseSeeder extends Seeder
             Distributor::create($distributor);
         }
 
+        // Create categories first (required for products)
+        $categories = [
+            ['name' => 'Ice Cream', 'slug' => 'ice-cream', 'icon' => '🍦', 'description' => 'Premium ice cream flavors', 'sort_order' => 1, 'is_active' => true],
+            ['name' => 'Frozen Yogurt', 'slug' => 'frozen-yogurt', 'icon' => '🥛', 'description' => 'Healthy frozen yogurt', 'sort_order' => 2, 'is_active' => true],
+            ['name' => 'Sorbet', 'slug' => 'sorbet', 'icon' => '🍧', 'description' => 'Fruit-based sorbets', 'sort_order' => 3, 'is_active' => true],
+            ['name' => 'Kulfi', 'slug' => 'kulfi', 'icon' => '🍨', 'description' => 'Traditional Indian kulfi', 'sort_order' => 4, 'is_active' => true],
+            ['name' => 'Family Pack', 'slug' => 'family-pack', 'icon' => '🎁', 'description' => 'Large family packs', 'sort_order' => 5, 'is_active' => true],
+        ];
+
+        $createdCategories = [];
+        foreach ($categories as $category) {
+            $createdCategories[$category['slug']] = Category::create($category);
+        }
+
         // Create sample inquiries
         $inquiries = [
             [
@@ -140,13 +155,15 @@ class DatabaseSeeder extends Seeder
             Inquiry::create($inquiry);
         }
 
-        // Create sample products
+        // Create sample products with category_id references
+        $iceCreamCategoryId = $createdCategories['ice-cream']->id;
+
         $products = [
             [
                 'name' => 'Vanilla Classic',
                 'sku' => 'ICE-VAN-001',
                 'description' => 'Rich and creamy vanilla ice cream made with real vanilla beans',
-                'category' => 'Ice Cream',
+                'category_id' => $iceCreamCategoryId,
                 'size' => '500ml',
                 'mrp_price' => 250.00,
                 'distributor_price' => 200.00,
@@ -159,7 +176,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Chocolate Fudge',
                 'sku' => 'ICE-CHO-002',
                 'description' => 'Decadent chocolate ice cream with fudge swirls',
-                'category' => 'Ice Cream',
+                'category_id' => $iceCreamCategoryId,
                 'size' => '500ml',
                 'mrp_price' => 280.00,
                 'distributor_price' => 224.00,
@@ -172,7 +189,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Mango Delight',
                 'sku' => 'ICE-MAN-003',
                 'description' => 'Fresh Alphonso mango ice cream',
-                'category' => 'Ice Cream',
+                'category_id' => $iceCreamCategoryId,
                 'size' => '500ml',
                 'mrp_price' => 300.00,
                 'distributor_price' => 240.00,
@@ -185,7 +202,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Butterscotch Bliss',
                 'sku' => 'ICE-BUT-004',
                 'description' => 'Creamy butterscotch with crunchy praline',
-                'category' => 'Ice Cream',
+                'category_id' => $iceCreamCategoryId,
                 'size' => '1L',
                 'mrp_price' => 450.00,
                 'distributor_price' => 360.00,
@@ -198,7 +215,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Strawberry Swirl',
                 'sku' => 'ICE-STR-005',
                 'description' => 'Fresh strawberry ice cream with real fruit chunks',
-                'category' => 'Ice Cream',
+                'category_id' => $iceCreamCategoryId,
                 'size' => '500ml',
                 'mrp_price' => 290.00,
                 'distributor_price' => 232.00,
@@ -211,7 +228,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Kesar Pista',
                 'sku' => 'ICE-KES-006',
                 'description' => 'Traditional Indian flavor with saffron and pistachios',
-                'category' => 'Ice Cream',
+                'category_id' => $iceCreamCategoryId,
                 'size' => '500ml',
                 'mrp_price' => 350.00,
                 'distributor_price' => 280.00,
