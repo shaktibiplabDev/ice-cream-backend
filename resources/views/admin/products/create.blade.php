@@ -43,9 +43,9 @@
                 <div class="form-field">
                     <label class="form-label">
                         Category
-                        <span class="optional-label">Optional</span>
+                        <span class="required-label">Required</span>
                     </label>
-                    <select name="category_id" class="form-select">
+                    <select name="category_id" class="form-select" required>
                         <option value="">Select Category</option>
                         @foreach($categories ?? [] as $category)
                             <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>

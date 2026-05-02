@@ -60,7 +60,15 @@
                             </div>
                         </td>
                         <td>{{ $product->sku }}</td>
-                        <td>{{ $product->category?->name ?? '-' }}</td>
+                        <td>
+                            @if($product->category && is_object($product->category))
+                                <span class="chip" style="background: rgba(79, 70, 229, 0.1); border-color: rgba(79, 70, 229, 0.2); color: #818cf8;">
+                                    {{ $product->category->icon ?? '🏷️' }} {{ $product->category->name }}
+                                </span>
+                            @else
+                                <span style="color: var(--text-muted); font-style: italic;">Uncategorized</span>
+                            @endif
+                        </td>
                         <td>
                             <div style="font-size: 0.75rem;">
                                 <div>MRP: {{ \App\Models\CompanySetting::getSettings()->currency_symbol }}{{ number_format($product->mrp_price, 2) }}</div>
