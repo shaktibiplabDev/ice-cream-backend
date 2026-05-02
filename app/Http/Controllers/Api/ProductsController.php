@@ -52,11 +52,6 @@ class ProductsController extends Controller
                     ] : null,
                     'size' => $product->size,
                     'unit' => $product->unit,
-                    'prices' => [
-                        'mrp' => $product->mrp_price,
-                        'distributor' => $product->distributor_price,
-                        'retailer' => $product->retailer_price,
-                    ],
                     'image' => $product->getImageUrl(),
                 ];
             }),
@@ -89,11 +84,6 @@ class ProductsController extends Controller
                 ] : null,
                 'size' => $product->size,
                 'unit' => $product->unit,
-                'prices' => [
-                    'mrp' => $product->mrp_price,
-                    'distributor' => $product->distributor_price,
-                    'retailer' => $product->retailer_price,
-                ],
                 'image' => $product->getImageUrl(),
             ],
         ]);
@@ -129,11 +119,6 @@ class ProductsController extends Controller
                             'sku' => $product->sku,
                             'size' => $product->size,
                             'unit' => $product->unit,
-                            'prices' => [
-                                'mrp' => $product->mrp_price,
-                                'distributor' => $product->distributor_price,
-                                'retailer' => $product->retailer_price,
-                            ],
                             'image' => $product->getImageUrl(),
                         ];
                     }),
